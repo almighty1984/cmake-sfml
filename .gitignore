@@ -1,0 +1,7 @@
+build
+out
+executable
+.cache
+.idea
+.vs
+.vscode
