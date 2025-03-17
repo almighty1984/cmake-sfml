@@ -13,7 +13,7 @@ import player;
 
 export namespace state {
     class GameInit : public State {
-        BitmapText m_test_text;        
+        BitmapText m_test_text;
         size_t m_transform_id = -1,
                m_input_id     = -1,
                m_line_0       = -1;
@@ -26,7 +26,11 @@ export namespace state {
         GameInit() {
             next = current = Type::GameInit;
 
-            m_transform_id = Transforms::add(new Transform);
+            for (u8 i = 0; i < num_visible_layers; ++i) {
+                visible_layers.insert(i);
+            }
+
+            m_transform_id = Transforms::make();
             Transforms::at(m_transform_id)->velocity.x = 5.0f;
             Transforms::at(m_transform_id)->deceleration.x = 0.1f;
             Console::log("GameInit transform_id: ", m_transform_id, "\n");
@@ -35,9 +39,9 @@ export namespace state {
             m_test_text.set_text("GameInit");
 
 
-            m_input_id = Inputs::add(new Input);
+            m_input_id = Inputs::make();
 
-            m_line_0 = Lines::add(new Line({ 32, 32 }, { 64, 128 }));
+            m_line_0 = Lines::make({ 32, 32 }, { 64, 128 });
             Lines::at(m_line_0)->size = 8;
             Lines::at(m_line_0)->color = { 255, 127, 0 };
 
@@ -46,25 +50,18 @@ export namespace state {
         }
         ~GameInit() {
             Console::log("~GameInit()\n");
+            Inputs::erase(m_input_id);
             Transforms::erase(m_transform_id);
-
             Lines::erase(m_line_0);
 
-            //Inputs::clear();
-            //Lines::clear();
-            //Transforms::clear();
+            Inputs::clear();
             Sprites::clear();
-            
-
-            /*Sprites::erase(test_sprite_id);
-
-            Inputs::erase(input_id);*/
+            Transforms::clear();
         }
         void update() override {
-            if (
-                //!Sprites::at(test_sprite_id) ||
-                m_line_0 == -1 || !Lines::at(m_line_0)
-                //|| !Inputs::at(input_id)
+            if (!Transforms::is_valid(m_transform_id) ||
+                !Lines::is_valid(m_line_0) ||
+                !Inputs::is_valid(m_input_id)
                 ) {
                 return;
             }
@@ -81,8 +78,6 @@ export namespace state {
                 Inputs::at(m_input_id)->release(input::Key::esc);
                 set_next(Type::Edit);
             }
-
-            m_test_text.update();
 
             m_player.update();
 

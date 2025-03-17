@@ -1,3 +1,6 @@
+module;
+#include <concepts>
+
 export module types;
 
 export using u8   = unsigned char;
@@ -36,79 +39,73 @@ export struct Color {
         return *this;
     }
 };
-export struct IntRect {
-    i32 x = 0, y = 0, w = 0, h = 0;
-    IntRect() {}
-    IntRect(i32c in_x, i32c in_y, i32c in_w, i32c in_h) : x(in_x), y(in_y), w(in_w), h(in_h) {}
-    IntRect& operator =(const IntRect& other) {
+export template<typename T> requires std::integral<T> || std::floating_point<T>
+struct Rect {
+    T x = 0, y = 0, w = 0, h = 0;
+    Rect() {}
+    Rect(T in_x, T in_y, T in_w, T in_h) : x(in_x), y(in_y), w(in_w), h(in_h) {}
+    Rect& operator =(const Rect& other) {
         x = other.x;
         y = other.y;
         w = other.w;
         h = other.h;
         return *this;
     }
-    template<typename T>
-    IntRect& operator *=(const T scalar) {
+    template<typename U>
+    Rect& operator *=(const U scalar) {
         x *= scalar, y *= scalar, w *= scalar, h *= scalar;
         return *this;
     }    
-    bool operator ==(const IntRect& other) { return (x == other.x && y == other.y && w == other.w && h == other.h); }
-    bool operator !=(const IntRect& other) { return (x != other.x || y != other.y || w != other.w || h != other.h); }
+    bool operator ==(const Rect& other) { return (x == other.x && y == other.y && w == other.w && h == other.h); }
+    bool operator !=(const Rect& other) { return (x != other.x || y != other.y || w != other.w || h != other.h); }
 };
-export struct Vec2i {
-    i32 x = 0, y = 0;
-    Vec2i() {}
-    Vec2i(i32c in_x, i32c in_y) : x(in_x), y(in_y) {}
-    Vec2i& operator =(const Vec2i& other) {
+export template<typename T> requires std::integral<T> || std::floating_point<T>
+struct Vec2 {
+    T x = 0, y = 0;
+    Vec2() {}
+    Vec2(T in_x, T in_y) : x(in_x), y(in_y) {}
+    Vec2& operator =(const Vec2& other) {
         x = other.x;
         y = other.y;
         return *this;
     }
-    Vec2i& operator +=(const Vec2i& other) {
+    Vec2& operator +=(const Vec2& other) {
         x += other.x;
         y += other.y;
         return *this;
     }
-    Vec2i operator +(const Vec2i& other) { return { x + other.x, y + other.y };   }
-    Vec2i operator -(const Vec2i& other) { return { x - other.x, y - other.y };   }
-    Vec2i operator *(const Vec2i& other) { return { x * other.x, y * other.y };   }
+    Vec2 operator +(const Vec2& other) { return { x + other.x, y + other.y };   }
+    Vec2 operator -(const Vec2& other) { return { x - other.x, y - other.y };   }
+    Vec2 operator -() { return { -x, -y }; }
+    Vec2 operator *(const Vec2& other) { return { x * other.x, y * other.y };   }
     template<typename T>
-    Vec2i operator *(const T scalar)     { return { x * scalar, y * scalar };     }
-    bool operator ==(const Vec2i& other) { return (x == other.x && y == other.y); }
-    bool operator !=(const Vec2i& other) { return (x != other.x || y != other.y); }
+    Vec2 operator *(const T scalar)     { return { x * scalar, y * scalar };     }
     template<typename T>
-    bool operator !=(const T value)      { return (x != value && y != value);     }
-};
-export struct Vec2f {
-    f32 x = 0.0f, y = 0.0f;
-    Vec2f() {}
-    Vec2f(f32c in_x, f32c in_y) : x(in_x), y(in_y) {}
-    Vec2f& operator =(const Vec2f& other) {
-        x = other.x;
-        y = other.y;
-        return *this;
-    }
-    Vec2f& operator +=(const Vec2f& other) {
-        x += other.x;
-        y += other.y;
-        return *this;
-    }
-    Vec2f operator +(const Vec2f& other) {  return {x + other.x, y + other.y};     }
-    Vec2f operator -(const Vec2f& other) {  return { x - other.x, y - other.y };   }
-    Vec2f operator *(const Vec2f& other) {  return { x * other.x, y * other.y };   }
-    template<typename T>
-    Vec2f operator *(const T scalar)     {  return { x * scalar, y * scalar };     }
-    template<typename T>
-    Vec2f operator /(const T scalar)     { return { x / scalar, y / scalar }; }
-    bool operator ==(const Vec2f& other) {  return (x == other.x && y == other.y); }    
-    bool operator !=(const Vec2f& other) {  return (x != other.x || y != other.y); }
-    template<typename T>
-    bool operator ==(const T val)        {  return (x == val && y == val);         }
-    template<typename T>
-    bool operator !=(const T val)        {  return (x != val && y != val);         }
-        
-    //Vec2f operator %(const int val) { return { (int)x % val, (int)y % val }; }
- };
+    Vec2 operator /(const T scalar)     { return { x / scalar, y / scalar };     }
 
-export typedef Vec2i const Vec2ic;
-export typedef Vec2f const Vec2fc;
+    bool operator ==(const Vec2& other) { return (x == other.x && y == other.y); }
+    //template<typename U>
+    //bool operator ==(const U value) { return x == value && y == value; }
+        
+    bool operator !=(const Vec2& other) { return (x != other.x || y != other.y); }
+    //template<typename U>
+    //bool operator !=(const U value)      { return x == value && y == value;    }
+};
+export typedef Vec2<i32> Vec2i;
+export typedef Vec2<i32> const Vec2ic;
+export typedef Vec2<f32> Vec2f;
+export typedef Vec2<f32> const Vec2fc;
+
+export typedef Rect<i32> Recti;
+export typedef Rect<i32> const Rectic;
+export typedef Rect<f32> Rectf;
+export typedef Rect<f32> const Rectfc;
+
+export struct SpriteData {
+    u8 tile_set = 0;
+    u8 layer = 0;
+    u16 source_y = 0;
+    u16 source_x = 0;
+    u16 offset_y = 0;
+    u16 offset_x = 0;
+};

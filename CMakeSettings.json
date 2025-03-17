@@ -9,7 +9,14 @@
       "installRoot": "${projectDir}\\out\\install\\${name}",
       "cmakeCommandArgs": "",
       "buildCommandArgs": "",
-      "ctestCommandArgs": ""
+      "ctestCommandArgs": "",
+      "variables": [
+        {
+          "name": "VCPKG_SETUP_CMAKE_PROGRAM_PATH",
+          "value": "False",
+          "type": "BOOL"
+        }
+      ]
     }
   ]
 }

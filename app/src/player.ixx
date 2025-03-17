@@ -22,21 +22,25 @@ export struct Player {
 
     Player() {
         Console::log("Player()\n");
-        input_id = Inputs::add(new Input);
+        input_id = Inputs::make();
 
-        transform_id = Transforms::add(new Transform);
+        transform_id = Transforms::make();
         Transforms::at(transform_id)->acceleration.x = 0.2f;
         Transforms::at(transform_id)->deceleration.x = 0.1f;
         Transforms::at(transform_id)->velocity_limit = { 5.0f, 0.0f };
 
-        sprite_id = Sprites::add(new Sprite("res/tiles/editor_selection.png"));
+        sprite_id = Sprites::make("res/tiles/editor_selection.png");
         Sprites::at(sprite_id)->transform_id = transform_id;
     }
     ~Player() {
         Console::log("~Player()\n");
-        Inputs::erase(input_id);
+        Console::log("~Player() input\n");
+        Inputs::erase(input_id);        
+        Console::log("~Player() transform\n");
         Transforms::erase(transform_id);
+        Console::log("~Player() sprite\n");
         Sprites::erase(sprite_id);
+        input_id = transform_id = sprite_id = -1;
     }
     
     Transform* transform() { return Transforms::is_valid(transform_id) ? Transforms::at(transform_id) : nullptr; }

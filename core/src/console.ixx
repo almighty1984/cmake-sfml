@@ -5,12 +5,15 @@ module;
 
 export module console;
 
+//template<typename T>
+//concept StringLike = std::is_convertible_v<T, std::string_view>;
+
 export class Console {
     static inline bool        s_is_hidden = false;
     static inline std::string s_log, s_prev_text, s_prev_command;
 public:
     static void log() {}
-    template <typename First, typename... Rest>    
+    template <typename First, typename... Rest> //requires StringLike<First> && (StringLike<Rest> && ...)    
     static void log(First first, Rest... rest) {
         std::ostringstream oss;
         oss << first;

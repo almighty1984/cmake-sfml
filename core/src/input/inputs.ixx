@@ -12,17 +12,17 @@ import types;
 import window;
 
 export class Inputs {
-    static inline size_t              m_num_input_ids = 0;
     static inline std::vector<Input*> m_inputs;
     static inline std::vector<size_t> m_unused_ids;
         
 public:
-    static inline Vec2f               mouse, mouse_prev;
+    static inline Vec2f               mouse     { 0.0f,0.0f },
+                                      mouse_prev{ 0.0f,0.0f };
 
     static inline f32                 scroll = 0.0f;
 
-    static bool   is_valid(size_t id) { return (id >= 0 && id <= m_num_input_ids - 1) ? true : false; }    
-    static Input* at(size_t i) { return (i >= 0 && i <= m_inputs.size() - 1) ? m_inputs.at(i) : nullptr; }
+    static bool   is_valid(size_t id) { return (id >= 0 && id < m_inputs.size()) ? true : false; }    
+    static Input* at(size_t i) { return (i >= 0 && i < m_inputs.size()) ? m_inputs.at(i) : nullptr; }
     
     static void handle_events(Window& w) {
 
@@ -51,9 +51,9 @@ public:
             } else if (const auto* mouse_moved = event->getIf<sf::Event::MouseMoved>()) {
                 mouse = { (f32)(mouse_moved->position.x / Config::scale()), (f32)(mouse_moved->position.y / Config::scale()) };
                 
-            } else if (const auto* mouse_pressed = event->getIf<sf::Event::MouseButtonPressed>()) {
+            } else if (const auto* mouse_pressed = event->getIf<sf::Event::MouseButtonPressed>()) {                
                 input::Button button = (input::Button)mouse_pressed->button;
-                //Console::log("mouse pressed ", (i8)b, "\n");
+                //Console::log("mouse pressed ", (i8)b, "\n");                
                 for (auto& i : m_inputs) {
                     if (i) {
                         i->press(button);
@@ -83,28 +83,21 @@ public:
             }
         }
     }
-    static size_t add(Input* input) {
-        if (!input) return -1;
-        Console::log("m_num_sprite_ids: ", m_num_input_ids, "\n");
+    static size_t make() {
+        Input* input = new Input;
         if (!m_unused_ids.empty()) {
             input->id = m_unused_ids.back();
             m_unused_ids.pop_back();
         } else {
-            input->id = m_num_input_ids;
-            ++m_num_input_ids;
+            input->id = m_inputs.size();
             m_inputs.push_back(nullptr);
         }
-
-        if (input->id >= 0 && input->id <= m_inputs.size() - 1 && m_inputs.at(input->id)) {
-            Console::log("Inputs::add erase ", input->id, "\n");
+        if (input->id >= 0 && input->id < m_inputs.size() && m_inputs.at(input->id)) {            
             delete m_inputs.at(input->id);
-            m_inputs.at(input->id) = nullptr;
-        } else {
-            m_inputs.at(input->id) = input;
         }
         m_inputs.at(input->id) = input;
         return input->id;
-    }
+    }    
     static void erase(size_t i) {
         Console::log("Inputs::erase ", i, "\n");
         if (m_inputs.empty() || i < 0 || i > m_inputs.size() - 1 || !m_inputs.at(i)) {
@@ -122,6 +115,5 @@ public:
         }
         m_inputs.clear();
         m_unused_ids.clear();
-        m_num_input_ids = 0;
     }
 };

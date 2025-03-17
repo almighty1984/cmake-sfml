@@ -18,5 +18,4 @@ target_sources(core
                    "src/transform/transforms.ixx"
                    "src/types.ixx"
                    "src/window.ixx")
-target_compile_features(core PRIVATE cxx_std_23)
 target_link_libraries(core PRIVATE SFML::Graphics SFML::Window)

@@ -23,7 +23,10 @@ public:
         u32 video_h = (u32)(h * Config::scale());
         m_sf_window = sf::RenderWindow(sf::VideoMode({ video_w, video_h }), title);
         m_sf_window.setView(sf::View((sf::FloatRect(sf::Vector2f(0.0f, 0.0f), sf::Vector2f((f32)video_w, (f32)video_h)))));
-    }    
+    }
+    void view(Rect<f32> rect) {
+        m_sf_window.setView(sf::View(sf::FloatRect({ (f32)rect.x, (f32)rect.y }, { (f32)rect.w, (f32)rect.h })));
+    }
     void clear()   { m_sf_window.clear();   }
     void close()   { m_sf_window.close();   }
     void display() { m_sf_window.display(); }

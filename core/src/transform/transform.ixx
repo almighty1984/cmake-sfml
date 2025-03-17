@@ -4,9 +4,13 @@ import console;
 import types;
 
 export struct Transform {
-    size_t id;
-    Vec2f  position, start_position, velocity, acceleration, deceleration;
-    Vec2f  velocity_limit;
+    size_t id             = -1;
+    Vec2f  position       = { 0.0f, 0.0f },
+           start_position = { 0.0f, 0.0f },
+           velocity       = { 0.0f, 0.0f },
+           velocity_limit = { 0.0f, 0.0f },
+           acceleration   = { 0.0f, 0.0f },
+           deceleration   = { 0.0f, 0.0f };
 
     Transform() : id(-1),
                   position(), start_position(), velocity(),
@@ -19,6 +23,7 @@ export struct Transform {
     }
     ~Transform() {
         Console::log("~Transform()\n");
+        id = -1;
     }
     void update() {
         velocity = decelerate(velocity, deceleration);
@@ -28,7 +33,7 @@ export struct Transform {
 
 private:
     Vec2f clamp(Vec2f v, Vec2f limit) {
-        if (limit == 0.0f) return v;
+        if (limit == Vec2f{0.0f, 0.0f}) return v;
         if (v.x < -limit.x) {
             v.x = -limit.x;
         } else if (v.x > limit.x) {

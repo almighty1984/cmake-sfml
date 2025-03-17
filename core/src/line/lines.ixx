@@ -8,33 +8,25 @@ import line;
 import types;
 import window;
 
-export class Lines {
-    static inline size_t               m_num_line_ids = 0;
+export class Lines {    
     static inline std::vector<Line*>   m_lines;
     static inline std::vector<size_t>  m_unused_ids;
 public:    
-    static bool   is_valid(size_t id) { return (id >= 0 && id <= m_num_line_ids - 1) ? true : false; }
-    static size_t size() { return m_lines.size(); }
-    static size_t num_line_ids() { return m_num_line_ids; }
+    static bool   is_valid(size_t i) { return (i >= 0 && i < m_lines.size() && m_lines.at(i)) ? true : false; }
+    static size_t size() { return m_lines.size(); }    
     static Line*  at(size_t i) { return (i >= 0 && i <= m_lines.size() - 1) ? m_lines.at(i) : nullptr; }
-    static size_t add(Line* line) {
-        if (!line) return -1;
-        Console::log("m_num_line_ids: ", m_num_line_ids, "\n");
+    static size_t make(Vec2fc start, Vec2fc end) {
+        Line* line = new Line(start, end);
+        
         if (!m_unused_ids.empty()) {
             line->id = m_unused_ids.back();
             m_unused_ids.pop_back();
         } else {
-            line->id = m_num_line_ids;
-            ++m_num_line_ids;
+            line->id = m_lines.size();
             m_lines.push_back(nullptr);
         }
-
-        if (!m_lines.empty() && line->id >= 0 && line->id <= m_lines.size() - 1 && m_lines.at(line->id)) {
-            Console::log("Sprites::add erase ", line->id, "\n");
+        if (!m_lines.empty() && line->id >= 0 && line->id < m_lines.size() && m_lines.at(line->id)) {
             delete m_lines.at(line->id);
-            m_lines.at(line->id) = nullptr;
-        } else {
-            m_lines.at(line->id) = line;
         }
         m_lines.at(line->id) = line;
         return line->id;
@@ -62,6 +54,5 @@ public:
             erase(i);
         }
         m_unused_ids.clear();
-        m_num_line_ids = 0;
     }
 };

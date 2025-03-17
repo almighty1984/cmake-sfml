@@ -26,13 +26,13 @@ export struct Sprite {
     std::filesystem::path texture_path;
     sf::Sprite sf_sprite;
     sf::Texture* sf_texture;
-    IntRect source_rect;
+    Rect<i32> source_rect;
     Sprite() = delete;
     Sprite(std::filesystem::path path) : //m_transformed_position(),
                                          id(-1), transform_id(-1),
                                          layer(0), tile_set(0),
                                          is_hidden(false), is_leftward(false), is_upended(false),
-                                         offset(), prev_position(-1.0f, -1.0f),
+                                         offset(), //prev_position(-1.0f, -1.0f),
                                          start(), level(), origin(), center(),
                                          color(), start_color(),
                                          rotation(0.0f), start_rotation(0.0f),
@@ -42,9 +42,29 @@ export struct Sprite {
                                          source_rect{0, 0, 16, 16} {
     }
     ~Sprite() {
-        Console::log("~Sprite layer: ", layer, " id: ", id, "\n");
+        //Console::log("~Sprite layer: ", layer, " id: ", id, "\n");
         id = -1;
         transform_id = -1;
+    }
+    Sprite& operator=(const Sprite& other) {
+        transform_id   = other.transform_id;
+        layer          = other.layer;
+        tile_set       = other.tile_set;
+        is_hidden      = other.is_hidden;
+        is_leftward    = other.is_leftward;
+        is_upended     = other.is_upended;
+        offset         = other.offset;
+        start          = other.start;
+        level          = other.level;
+        origin         = other.origin;
+        center         = other.center;
+        color          = other.color;
+        start_color    = other.start_color;
+        rotation       = other.rotation;
+        start_rotation = other.start_rotation;
+        texture_path   = other.texture_path;     
+        source_rect    = other.source_rect;
+        return *this;
     }
     //void attach_transform(size_t id) { transform_id = id; }  void detach_transform() { transform_id = -1; }
     Transform* transform() { return Transforms::is_valid(transform_id) ? Transforms::at(transform_id) : nullptr; }
@@ -68,7 +88,7 @@ export struct Sprite {
         sf_sprite.setTextureRect(sf::IntRect({ source_rect.x, source_rect.y }, { source_rect.w, source_rect.h }));
         return true;
     }
-    void texture_rect(IntRect rect) {
+    void texture_rect(Rect<i32> rect) {
         source_rect = rect;
         sf_sprite.setTextureRect(sf::IntRect({ rect.x, rect.y }, { rect.w, rect.h }));
     }

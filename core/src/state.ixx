@@ -26,8 +26,11 @@ export namespace state {
     public:
         Type next    = Type::GameInit,
              current = Type::null;
-
+        
+        u8 num_visible_layers = 14;
         std::set<u8> visible_layers;
+
+        i32 current_fps;
 
         bool is_to_change() {
             return next != current;
