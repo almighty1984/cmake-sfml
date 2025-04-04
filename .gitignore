@@ -1,6 +1,5 @@
 build
 out
-executable
 .cache
 .idea
 .vs
