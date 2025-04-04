@@ -6,7 +6,7 @@ import config;
 import types;
 
 export struct Line {
-    size_t id = -1;
+    i32 id = -1;
     sf::Vertex sf_vertices[4] = {};
     u8 size = 1, layer = 0;
     Color color{127};
@@ -18,9 +18,9 @@ export struct Line {
     Vec2f velocity;
 
     f32 length = 0.0f,  max_length = 0.0f;
-    f32 slope = 0.0f;    
-
-    Line(Vec2f in_start, Vec2f in_end) {
+    f32 slope = 0.0f;
+    
+    Line(Vec2fc in_start, Vec2fc in_end) {
         set(in_start, in_end);
     }
     ~Line() {
@@ -28,7 +28,7 @@ export struct Line {
     }
     void set(Vec2f in_start, Vec2f in_end) {
         Vec2f prev_start = start;
-        Vec2f prev_end = end;        
+        Vec2f prev_end   = end;
         start = in_start;
         end = in_end;
 

@@ -9,7 +9,7 @@ import types;
 
 export class Config {
     static inline u8          m_scale      = 1;
-    static inline state::Type m_state_type = state::Type::GameInit;
+    static inline state::Type m_state_type = state::Type::Game;
 public:
     static u8c         scale() { return m_scale; }
     static state::Type state_type() { return m_state_type; }
@@ -33,7 +33,7 @@ public:
             return false;
         }
         std::string text = file_to_string(path);
-        std::string state_string = string_from(m_state_type);
+        std::string state_string = state::to_string(m_state_type);
 
         size_t start_tag = text.find("start_state", 0);
         size_t i = 0;

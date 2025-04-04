@@ -28,10 +28,12 @@ export using f64c = double const;
 
 //export constexpr u8c NUM_LAYERS = 2;
 
+export constexpr u8 NUM_VISIBLE_LAYERS = 14;
+
 export struct Color {
     u8 r = 127, g = 127, b = 127;
     bool operator ==(const Color& other) {  return (r == other.r && g == other.g && b == other.b);  }
-    bool operator !=(const Color& other) {  return (r != other.r || g != other.g || b != other.b);  }
+    bool operator !=(const Color& other) {  return !operator==(other);  }
     Color& operator =(const Color& other) {
         r = other.r;
         g = other.g;
@@ -51,8 +53,8 @@ struct Rect {
         h = other.h;
         return *this;
     }
-    template<typename U>
-    Rect& operator *=(const U scalar) {
+    template<typename T>
+    Rect& operator *=(const T scalar) {
         x *= scalar, y *= scalar, w *= scalar, h *= scalar;
         return *this;
     }    
@@ -74,22 +76,26 @@ struct Vec2 {
         y += other.y;
         return *this;
     }
-    Vec2 operator +(const Vec2& other) { return { x + other.x, y + other.y };   }
-    Vec2 operator -(const Vec2& other) { return { x - other.x, y - other.y };   }
-    Vec2 operator -() { return { -x, -y }; }
-    Vec2 operator *(const Vec2& other) { return { x * other.x, y * other.y };   }
+    Vec2& operator -=(const Vec2& other) {
+        x -= other.x;
+        y -= other.y;
+        return *this;
+    }    
+    Vec2 operator +(const Vec2& other)  const { return { x + other.x, y + other.y };   }
+    Vec2 operator -(const Vec2& other)  const { return { x - other.x, y - other.y };   }
+    Vec2 operator -()                   const { return { -x, -y };                     }
+    Vec2 operator *(const Vec2& other)  const { return { x * other.x, y * other.y };   }
     template<typename T>
-    Vec2 operator *(const T scalar)     { return { x * scalar, y * scalar };     }
+    Vec2 operator *(const T scalar)     const { return { x * scalar, y * scalar };     }
     template<typename T>
-    Vec2 operator /(const T scalar)     { return { x / scalar, y / scalar };     }
-
-    bool operator ==(const Vec2& other) { return (x == other.x && y == other.y); }
-    //template<typename U>
-    //bool operator ==(const U value) { return x == value && y == value; }
-        
-    bool operator !=(const Vec2& other) { return (x != other.x || y != other.y); }
-    //template<typename U>
-    //bool operator !=(const U value)      { return x == value && y == value;    }
+    Vec2 operator /(const T scalar)     const { return { x / scalar, y / scalar };     }
+    bool operator ==(const Vec2& other) const { return (x == other.x && y == other.y); }
+    template<typename T>
+    bool operator ==(const T value)     const { return x == value && y == value;       }        
+    bool operator !=(const Vec2& other) const { return (x != other.x || y != other.y); }
+    template<typename T>
+    bool operator !=(const T value)     const { return x == value && y == value;       }
+    bool operator <(const Vec2& other)  const { return (x < other.x && y < other.y);   }
 };
 export typedef Vec2<i32> Vec2i;
 export typedef Vec2<i32> const Vec2ic;

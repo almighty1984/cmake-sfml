@@ -33,7 +33,7 @@ public:
                 w.close();
             }
             else if (const auto* key = event->getIf<sf::Event::KeyPressed>()) {
-                input::Key key_num = (input::Key)key->scancode;
+                input::Key key_num = (input::Key)key->scancode;                
                 //Console::log("key pressed ", (i32)key_num, "\n");
                 for (auto& i : m_inputs) {
                     if (i) {
@@ -49,8 +49,7 @@ public:
                     }
                 }
             } else if (const auto* mouse_moved = event->getIf<sf::Event::MouseMoved>()) {
-                mouse = { (f32)(mouse_moved->position.x / Config::scale()), (f32)(mouse_moved->position.y / Config::scale()) };
-                
+                mouse = { (f32)(mouse_moved->position.x / Config::scale()), (f32)(mouse_moved->position.y / Config::scale()) };                
             } else if (const auto* mouse_pressed = event->getIf<sf::Event::MouseButtonPressed>()) {                
                 input::Button button = (input::Button)mouse_pressed->button;
                 //Console::log("mouse pressed ", (i8)b, "\n");                

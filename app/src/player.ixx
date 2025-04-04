@@ -1,5 +1,7 @@
 module;
+#include <filesystem>
 #include <vector>
+#include <sstream>
 
 export module player;
 
@@ -11,79 +13,42 @@ import transform;
 import transforms;
 import types;
 
-export struct Player {
-    size_t input_id     = -1,
-           transform_id = -1,
-           sprite_id = -1;
-    input::Key key_up    = input::Key::up,
-               key_down  = input::Key::down,
-               key_left  = input::Key::left,
-               key_right = input::Key::right;
+export class Player {
+private:
+    i32  m_input_id     = -1,
+         m_transform_id = -1,
+         m_sprite_id    = -1;
+public:
+    input::Key key_up    = input::Key::w,
+               key_down  = input::Key::s,
+               key_left  = input::Key::a,
+               key_right = input::Key::d;
 
-    Player() {
-        Console::log("Player()\n");
-        input_id = Inputs::make();
+    Player();
+    ~Player();
 
-        transform_id = Transforms::make();
-        Transforms::at(transform_id)->acceleration.x = 0.2f;
-        Transforms::at(transform_id)->deceleration.x = 0.1f;
-        Transforms::at(transform_id)->velocity_limit = { 5.0f, 0.0f };
+    void set_layer(u8c layer) { Sprites::at(m_sprite_id)->layer = layer; }
 
-        sprite_id = Sprites::make("res/tiles/editor_selection.png");
-        Sprites::at(sprite_id)->transform_id = transform_id;
-    }
-    ~Player() {
-        Console::log("~Player()\n");
-        Console::log("~Player() input\n");
-        Inputs::erase(input_id);        
-        Console::log("~Player() transform\n");
-        Transforms::erase(transform_id);
-        Console::log("~Player() sprite\n");
-        Sprites::erase(sprite_id);
-        input_id = transform_id = sprite_id = -1;
-    }
+    size_t get_transform_id() const { return m_transform_id; }
+    size_t get_sprite_id() const { return m_sprite_id; }
+
+    Rectic source_rect() const { return Sprites::at(m_sprite_id) ? Sprites::at(m_sprite_id)->source_rect : Rect{0, 0, 0, 0}; }
+
+    bool sprite_texture(const std::filesystem::path& path) { if (Sprites::at(m_sprite_id)) { Sprites::at(m_sprite_id)->texture(path); return true; } else return false; }
+
+    Vec2fc position() const { return Transforms::at(m_transform_id) ? Transforms::at(m_transform_id)->position : Vec2f{ 0.0f,0.0f }; }  void position(Vec2fc p) { if (Transforms::at(m_transform_id)) Transforms::at(m_transform_id)->position = p; }
+    f32c   x()        const { return Transforms::at(m_transform_id) ? Transforms::at(m_transform_id)->position.x : 0.0f; }              void x(f32c in_x) { if (Transforms::at(m_transform_id)) Transforms::at(m_transform_id)->position.x = in_x; }
+    f32c   y()        const { return Transforms::at(m_transform_id) ? Transforms::at(m_transform_id)->position.y : 0.0f; }              void y(f32c in_y) { if (Transforms::at(m_transform_id)) Transforms::at(m_transform_id)->position.y = in_y; }
+    Vec2fc velocity() const { return Transforms::at(m_transform_id) ? Transforms::at(m_transform_id)->velocity : Vec2f{ 0.0f, 0.0f }; } void velocity(Vec2fc v) { if (Transforms::at(m_transform_id)) Transforms::at(m_transform_id)->velocity = v; }
+
+    void acceleration(Vec2fc a) { if (Transforms::at(m_transform_id)) Transforms::at(m_transform_id)->acceleration = a; }
+    void deceleration(Vec2fc d) { if (Transforms::at(m_transform_id)) Transforms::at(m_transform_id)->deceleration = d; }
+
+    void velocity_limit(Vec2fc l) { if (Transforms::at(m_transform_id)) Transforms::at(m_transform_id)->velocity_limit = l; }
     
-    Transform* transform() { return Transforms::is_valid(transform_id) ? Transforms::at(transform_id) : nullptr; }
-    bool is_pressed(input::Key k) { return Inputs::is_valid(input_id) ? Inputs::at(input_id)->is_pressed(k) : false; }
-    void release(input::Key k)    { if (Inputs::is_valid(input_id))     Inputs::at(input_id)->release(k); }
+    Transform* transform()        { return Transforms::is_valid(m_transform_id) ? Transforms::at(m_transform_id) : nullptr; }
+    bool is_pressed(input::Key k) { return Inputs::is_valid(m_input_id) ? Inputs::at(m_input_id)->is_pressed(k) : false; }
+    void release(input::Key k)    { if (Inputs::is_valid(m_input_id))     Inputs::at(m_input_id)->release(k); }
 
-    void update() {
-        if (!Inputs::is_valid(input_id)
-            ||
-            !Transforms::is_valid(transform_id)
-            )
-            return;
-
-        //if      (transform()->velocity.x < 0.0f)    transform()->velocity.x += 0.01f;
-        //else if (transform()->velocity.x > 0.0f)    transform()->velocity.x -= 0.01f;        
-
-        if (is_pressed(input::Key::a)) {
-            release(input::Key::a);
-            //Console::log("input ", input_id, " pressed A\n");
-        }
-        if (is_pressed(key_up)) {
-            release(key_up);
-            //Console::log("input ", input_id, " pressed up\n");
-        }
-        if (is_pressed(key_down)) {
-            //release(key_down);
-            //Console::log("input ", input_id, " pressed down\n");
-        }
-        if (is_pressed(key_left)) {
-            //release(key_left);
-            //Console::log("input ", input_id, " pressed left\n");
-            transform()->velocity.x -= transform()->acceleration.x;
-        }
-        if (is_pressed(key_right)) {
-            //release(key_right);
-            //Console::log("input ", input_id, " pressed right\n");
-            transform()->velocity.x += transform()->acceleration.x;
-        }
-        //transform()->update();
-
-        //Transforms::at(transform_id)->update();
-        
-        //Sprites::at(sprite_id)->position = Transforms::at(transform_id)->position;
-        //Sprites::at(sprite_id)->update();        
-    }
+    void update();
 };

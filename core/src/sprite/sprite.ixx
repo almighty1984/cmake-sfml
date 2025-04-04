@@ -15,11 +15,20 @@ export struct Sprite {
 //private:
 //    Vec2f m_transformed_position;
 //public:
-    size_t id, transform_id;
-    u8 layer, tile_set;
-    bool is_hidden, is_leftward, is_upended;
-    Vec2f offset, prev_position;
-    Vec2f start, level, origin, center;
+    i32    id           = -1,
+           transform_id = -1;
+
+    u8     layer       = 0,
+           tile_set    = 0;
+    bool   is_hidden   = false,
+           is_leftward = false,
+           is_upended  = false;
+    Vec2f  offset,
+           prev_position;
+    Vec2f  start,
+           level,
+           origin,
+           center;
     
     Color color, start_color;
     f32 rotation, start_rotation;

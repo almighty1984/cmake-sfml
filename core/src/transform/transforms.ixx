@@ -13,8 +13,6 @@ export class Transforms {
     static inline std::vector<Transform*> m_transforms;
     static inline std::vector<size_t>     m_unused_ids;
 
-    //static inline std::vector<std::unique_ptr<Transform>> m_transforms;
-
 public:
     static Transform* at(size_t i) { return (i >= 0 && i < m_transforms.size()) ? m_transforms.at(i) : nullptr; }
     static bool   is_valid(size_t i) { return (i >= 0 && i < m_transforms.size() && m_transforms.at(i)) ? true : false; }
@@ -22,7 +20,6 @@ public:
     
     static size_t make() {
         Transform* transform = new Transform;
-        //std::unique_ptr<Transform> transform = std::make_unique<Transform>();
 
         if (!m_unused_ids.empty()) {
             transform->id = m_unused_ids.back();
@@ -35,7 +32,6 @@ public:
 
         if (!m_transforms.empty() && transform->id >= 0 && transform->id < m_transforms.size() && m_transforms.at(transform->id)) {            
             delete m_transforms.at(transform->id);
-            //m_transforms.at(transform->id).reset();
         }
         m_transforms.at(transform->id) = transform;        
 

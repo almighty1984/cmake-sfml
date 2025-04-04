@@ -9,7 +9,7 @@ import sprites;
 import types;
 
 namespace state {
-    size_t Edit::grid_sprite_id_at_offset(Vec2fc offset) {
+    i32 Edit::grid_sprite_id_at_offset(Vec2f offset) {
         if (m_grid_sprite_ids.empty()) return -1;
 
         f32c x = offset.x - std::fmodf(offset.x, 256.0f);
@@ -23,7 +23,7 @@ namespace state {
         }
         return -1;
     }
-    size_t Edit::grid_map_sprite_id_at_offset(Vec2fc offset) {
+    i32 Edit::grid_map_sprite_id_at_offset(Vec2f offset) {
         if (m_grid_map_sprite_ids.empty()) return -1;
 
         f32c x = offset.x - std::fmodf(offset.x, 16.0f);
@@ -70,7 +70,7 @@ namespace state {
         Console::log("state::Edit::erase_grid_at sprite_id: ", grid_sprite_id, "\n");
 
         bool is_found = false;
-        std::vector<size_t> resized_grid_sprite_ids;
+        std::vector<i32> resized_grid_sprite_ids;
         for (auto& i : m_grid_sprite_ids) {
             if (i == grid_sprite_id) {
                 is_found = true;
@@ -102,7 +102,7 @@ namespace state {
             return false;
         }
         is_found = false;
-        std::vector<size_t> resized_grid_map_sprite_ids;
+        std::vector<i32> resized_grid_map_sprite_ids;
         for (auto& i : m_grid_map_sprite_ids) {
             if (i == grid_map_sprite_id) {
                 is_found = true;
@@ -117,6 +117,27 @@ namespace state {
         Sprites::erase(grid_map_sprite_id);
 
 
+        return true;
+    }
+    bool Edit::clear_grid_sprites() {
+        /*if (m_grid_transform_id != -1) {
+            Transforms::erase(m_grid_transform_id);
+            m_grid_transform_id = -1;
+        }*/
+        for (auto& i : m_grid_sprite_ids) {
+            if (!Sprites::at(i)) continue;
+            if (Sprites::at(i)->transform_id == m_grid_transform_id) {
+                Sprites::erase(i);
+            }
+        }        
+        m_grid_sprite_ids.clear();
+        for (auto& i : m_grid_map_sprite_ids) {
+            if (!Sprites::at(i)) continue;
+            if (Sprites::at(i)->transform_id == m_grid_map_transform_id) {
+                Sprites::erase(i);
+            }
+        }
+        m_grid_map_sprite_ids.clear();
         return true;
     }
 }

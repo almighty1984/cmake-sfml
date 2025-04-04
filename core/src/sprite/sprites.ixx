@@ -3,6 +3,7 @@ module;
 #include <fstream>
 #include <sstream>
 #include <vector>
+#include <set>
 
 export module sprites;
 
@@ -13,13 +14,13 @@ import window;
 
 export class Sprites {
     static inline std::vector<Sprite*> m_sprites;
-    static inline std::vector<size_t>  m_unused_ids;
+    static inline std::vector<i32>  m_unused_ids;
     
-public:    
+public:
     static inline u8 num_layers = 10;
-    static bool    is_valid(size_t i) { return (i >= 0 && i < m_sprites.size() && m_sprites.at(i)) ? true : false; }
-    static size_t  size()             { return m_sprites.size(); }
-    static Sprite* at(size_t i)       { return (i >= 0 && i < m_sprites.size()) ? m_sprites.at(i) : nullptr; }
+    static bool    is_valid(i32c i) { return (i >= 0 && i < m_sprites.size() && m_sprites.at(i)) ? true : false; }
+    static size_t  size()           { return m_sprites.size(); }
+    static Sprite* at(i32c i)       { return (i >= 0 && i < m_sprites.size()) ? m_sprites.at(i) : nullptr; }
     static size_t  make(const std::filesystem::path& path) {
         Sprite* sprite = new Sprite(path);
         if (!m_unused_ids.empty()) {
@@ -35,7 +36,7 @@ public:
         m_sprites.at(sprite->id) = sprite;
         return sprite->id;
     }
-    static void erase(size_t i) {
+    static void erase(i32c i) {
         if (m_sprites.empty() || i < 0 || i > m_sprites.size() - 1 || !m_sprites.at(i)) {
             //Console::log("Sprites::erase ", i, " can't do it\n");
             return;
@@ -68,20 +69,20 @@ public:
         }
     }
     static void clear() {
-        for (size_t i = 0; i < m_sprites.size(); ++i) {
+        for (i32 i = 0; i < m_sprites.size(); ++i) {
             //Console::log("Sprites::clear erasing ", i, "\n");
             erase(i);
         }
         m_sprites.clear();
         m_unused_ids.clear();
     }
-    static void save(const std::filesystem::path& path, std::vector<size_t>& grid_sprite_ids) {
+    static void save(const std::filesystem::path& path, std::vector<i32>& grid_sprite_ids) {
         Console::log("Sprites::save\n");
         std::vector<Sprite*> sprites_to_save;
         for (auto& i : grid_sprite_ids) {
             u16 rows    = m_sprites.at(i)->source_rect.h / 16;
             u16 columns = m_sprites.at(i)->source_rect.w / 16;
-            Vec2f offset = m_sprites.at(i)->offset;
+            Vec2fc offset = m_sprites.at(i)->offset;
 
             for (u8 layer = 0; layer < num_layers; ++layer) {
                 for (u16 y = 0; y < rows; ++y) {
@@ -131,146 +132,144 @@ public:
         
         Console::log("Sprites::open size: ", size, "\n");
         
-        std::vector<SpriteData> sprite_data;
+        std::vector<SpriteData> sprite_data_vec;
         for (u16 i = 0; i < size; ++i) {
-            SpriteData sd;
-            in_file.read((i8*)&sd.tile_set, sizeof(u8));
-            in_file.read((i8*)&sd.layer,    sizeof(u8));
-            in_file.read((i8*)&sd.source_y, sizeof(u16));
-            in_file.read((i8*)&sd.source_x, sizeof(u16));
-            in_file.read((i8*)&sd.offset_y, sizeof(u16));
-            in_file.read((i8*)&sd.offset_x, sizeof(u16));
-            sprite_data.push_back(sd);
+            SpriteData sprite_data;
+            in_file.read((i8*)&sprite_data.tile_set, sizeof(u8));
+            in_file.read((i8*)&sprite_data.layer,    sizeof(u8));
+            in_file.read((i8*)&sprite_data.source_y, sizeof(u16));
+            in_file.read((i8*)&sprite_data.source_x, sizeof(u16));
+            in_file.read((i8*)&sprite_data.offset_y, sizeof(u16));
+            in_file.read((i8*)&sprite_data.offset_x, sizeof(u16));
+            sprite_data_vec.push_back(sprite_data);
         }
 
         in_file.close();
 
-        return sprite_data;
+        return sprite_data_vec;
     }
-    static void erase_null() {
-        //Console::log("Sprites::erase_null size: ", m_sprites.size(), "\n");
-        /*m_unused_ids.clear();
-
-        auto is_null = [](const Sprite* s) { return s == nullptr; };
-        m_sprites.erase(std::remove_if(std::begin(m_sprites), std::end(m_sprites), is_null), std::end(m_sprites));
-
-        for (size_t i = 0; i < m_sprites.size(); ++i) {
-            m_sprites.at(i)->id = i;
-        }*/
-
-
+    static void erase_null(size_t transform_id) {
+        if (m_sprites.empty()
+            || m_sprites.size() < m_unused_ids.size()
+            ) {
+            return;
+        }
+        Console::log("Sprites::erase_null m_sprites.size before : ", m_sprites.size(), "\n");
         if (m_unused_ids.empty()) return;
 
-        m_unused_ids.clear();
+        std::ranges::sort(m_unused_ids, std::ranges::greater());
 
-        std::vector<size_t> null_ids;
-        //Console::log("Sprites null:         ");
-        for (size_t i = 0; i < m_sprites.size(); ++i) {
-            if (!m_sprites.at(i)) {
-                //Console::log(i, ",");
-                null_ids.push_back(i);
-            }
+        for (auto& i : m_unused_ids) {
+            Console::log("unused id: ", i, "\n");
         }
-        //Console::log("\n");
-        /*Console::log("Sprites unused:       ");
-        for (size_t i = 0; i < m_unused_ids.size(); ++i) {
-            Console::log(m_unused_ids.at(i), ",");
-        }
-        Console::log("\n");
 
-        return;*/
+        Console::log("Sprites::erase_null m_sprites.size before : ", m_sprites.size(), "\n");      
 
-        if (null_ids.empty()) return;
-
-        m_unused_ids = null_ids;
-
-
-        //if (m_unused_ids.empty()) return;
-
-        //Console::log("Sprites not null:     ");
-        std::vector<size_t> not_null_ids;
-        for (size_t i = m_sprites.size() - 1; i > 0; --i) {
-            if (not_null_ids.size() >= null_ids.size()) {
+        std::set<i32> to_be_moved;
+        for (i32 i = m_sprites.size() - 1; i > 0; --i) {
+            if (to_be_moved.size() >= m_unused_ids.size()) {
+                Console::log("found enough to move\n");
                 break;
             }
-            if (m_sprites.at(i)) {
-                not_null_ids.push_back(i);
+            if (m_sprites.at(i) && m_sprites.at(i)->transform_id == transform_id && i > m_unused_ids.back()) {
+                to_be_moved.insert(i);
             }
         }
-        //Console::log("\n");
+        /*if (to_be_moved.size() < m_unused_ids.size()) {
+            Console::log("not enough to move\n");
+            return;
+        }*/
 
-        /*Console::log("Sprites not null:     ");
-        for (size_t i = 0; i < not_null_ids.size(); ++i) {
-            Console::log(not_null_ids.at(i), ",");
+        std::vector<i32> to_be_erased;
+
+        for (auto& i : to_be_moved) {
+            Console::log("moving ", i, " to ", m_unused_ids.back(), "\n");
+            m_sprites.at(m_unused_ids.back()) = m_sprites.at(i);
+            m_sprites.at(m_unused_ids.back())->id = m_unused_ids.back();        
+            m_sprites.at(i) = nullptr;            
+            m_unused_ids.pop_back();
+            //m_sprites.erase(m_sprites.begin() + i);
+            to_be_erased.push_back(i);
+            if (m_unused_ids.empty())
+                break;
         }
-        Console::log("\n");
-        return;*/
 
-        while (!null_ids.empty()) {
-            m_sprites.at(null_ids.back()) = m_sprites.at(not_null_ids.back());
-            m_sprites.at(null_ids.back())->id = null_ids.back();
+        std::ranges::sort(to_be_erased, std::ranges::less());
 
-            m_sprites.at(not_null_ids.back()) = nullptr;
-            null_ids.pop_back();
-            not_null_ids.pop_back();
+        for (i32 i = to_be_erased.size() - 1; i > 0; ++i) {
+            Console::log("to be erased: ", i, "\n");
+            m_sprites.erase(m_sprites.begin() + to_be_erased.at(i));
         }
+        for (i32 i = 0; i < m_sprites.size(); ++i) {
+            if (m_sprites.at(i))
+                m_sprites.at(i)->id = i;
+        }
+        m_unused_ids.clear();
 
-        //Console::log("Sprites null after: ");
-        for (size_t i = 0; i < m_sprites.size(); ++i) {
+        m_unused_ids = to_be_erased;
+        Console::log("sprites.size: ", m_sprites.size(), "\n");
+
+        /*for (size_t i = m_sprites.size() - 1; i > 0; --i) {
             if (!m_sprites.at(i)) {
-                //Console::log(i, ",");
+                Console::log("id: ", i, " was null\n");
+                m_sprites.erase(m_sprites.begin() + i);
             }
-        }
-        //m_sprites.resize(m_sprites.size() - (m_unused_ids.size() - 1));
-        //m_unused_ids.clear();
-        //Console::log("\n");
+        }*/
+
+        /*for (size_t i = 0; i < m_sprites.size(); ++i) {
+            if (m_sprites.at(i))
+                m_sprites.at(i)->id = i;            
+        }*/
+
+        //Console::log("Sprites::erase_null size after erase: ", m_sprites.size(), "\n");
+
 
         return;
-
-       
         
-        /*for (size_t i = 0; i < not_null_ids.size(); ++i) {
-            m_sprites.at(m_unused_ids.back()) = m_sprites.at(not_null_ids.at(i));
-            m_sprites.at(m_unused_ids.back())->id = m_unused_ids.back();
-            m_sprites.at(m_unused_ids.back())->offset = m_sprites.at(not_null_ids.at(i))->offset;
-
-            m_sprites.at(not_null_ids.at(i)) = nullptr;
-
-            m_unused_ids.pop_back();
-            m_unused_ids.push_back(not_null.at(i));
-        }*/
-
-
-        /*Console::log("Sprites unused after: ");
-        for (size_t i = 0; i < m_unused_ids.size(); ++i) {
-            Console::log(m_unused_ids.at(i), ",");
+        Console::log("Sprites::erase_null size before erase: ", m_sprites.size(), "\n");
+        for (size_t i = m_sprites.size() - 1; i > 0; --i) {
+            if (!m_sprites.at(i)) {
+                Console::log("Sprites::erase_null: ", i, " was null\n");
+                m_sprites.erase(m_sprites.begin() + i);
+            }
         }
-        Console::log("\n");*/
-
-
-        /*for (size_t i = 0; i < not_null.size(); ++i) {
-            m_sprites.erase(m_sprites.begin() + not_null.at(i));
-        }*/
-
-        /*for (size_t i = 0; i < m_unused_ids.size(); ++i) {
-            m_sprites.erase(m_sprites.begin() + m_unused_ids.at(i));
-        }
-        m_unused_ids.clear();*/
-
         
-
-
-        
-
-
-        /*Console::log("unused size:", m_unused_ids.size(), "\n");
-
-        Console::log("unused: ");
-        for (size_t i = 0; i < m_unused_ids.size(); ++i) {
-            Console::log(m_unused_ids.at(i), ",");
+        Console::log("Sprites::erase_null size after erase: ", m_sprites.size(), "\n");
+        for (size_t i = m_sprites.size() - 1; i > 0; --i) {
+            if (m_sprites.at(i) && m_sprites.at(i)->transform_id == transform_id) {
+                //Console::log("Sprites::erase_null after id: ", i, "\n");
+                m_sprites.at(i)->id = i;
+            }
         }
-        Console::log("\n");*/
+        return;
 
-        //Console::log("Sprites::erase_null size: ", m_sprites.size(), "\n");
+        for (size_t i = 0; i < m_sprites.size(); ++i) {
+            if (!m_sprites.at(i)) {
+                //Console::log("first null: ", i, " erase to ", m_sprites.size() - 1, "\n");
+                //m_sprites.resize(m_sprites.size() - (m_sprites.size() - i));
+                Console::log("Sprites::erase_null erase: ", i, "\n");
+                m_sprites.erase(m_sprites.begin() + i);
+                
+                if (i > m_sprites.size() - 1) break;
+
+                //--i;
+                
+                /*--i;
+                for (size_t j = i; j < m_sprites.size(); ++j) {
+                    if (m_sprites.at(j))
+                        m_sprites.at(j)->id = j;
+                }    */            
+                //return;
+            } else {
+                Console::log("something was here: ", i, " id: ", m_sprites.at(i)->id, "\n");
+            }
+        }
+        for (size_t i = 0; i < m_sprites.size(); ++i) {
+            if (m_sprites.at(i)) {
+                Console::log("Sprites::erase_null after id: ", i, "\n");
+                m_sprites.at(i)->id = i;
+            }
+        }
+        Console::log("Sprites::erase_null m_sprites.size after: ", m_sprites.size(), "\n");
     }
 };

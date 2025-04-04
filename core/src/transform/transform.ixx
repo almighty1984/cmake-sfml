@@ -4,13 +4,13 @@ import console;
 import types;
 
 export struct Transform {
-    size_t id             = -1;
-    Vec2f  position       = { 0.0f, 0.0f },
-           start_position = { 0.0f, 0.0f },
-           velocity       = { 0.0f, 0.0f },
-           velocity_limit = { 0.0f, 0.0f },
-           acceleration   = { 0.0f, 0.0f },
-           deceleration   = { 0.0f, 0.0f };
+    i32   id             = -1;
+    Vec2f position       = { 0.0f, 0.0f },
+          start_position = { 0.0f, 0.0f },
+          velocity       = { 0.0f, 0.0f },
+          velocity_limit = { 0.0f, 0.0f },
+          acceleration   = { 0.0f, 0.0f },
+          deceleration   = { 0.0f, 0.0f };
 
     Transform() : id(-1),
                   position(), start_position(), velocity(),

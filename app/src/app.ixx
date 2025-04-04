@@ -1,16 +1,18 @@
 module;
 #include <chrono>
 #include <vector>
+#include <sstream>
 
 export module app;
 
 import console;
+import bitmap_text;
 import inputs;
 import lines;
 import sprites;
 import state;
 import state.edit;
-import state.game_init;
+import state.game;
 import transforms;
 import types;
 import window;
@@ -25,7 +27,7 @@ export class App {
         
     std::chrono::steady_clock::duration   m_delta_time;
 
-    size_t m_transform_id = -1;
+    i32 m_transform_id = -1;
 
     void init(u16 w, u16 h, const char* title) {
         m_window.init(w, h, title);
@@ -35,14 +37,14 @@ public:
     App(u16c w, u16c h, const char* title) {
         init(w, h, title);
     }
-    void set_state(state::Type next_type) {
-        if (next_type == m_state_type || next_type == state::Type::null) return;
-        m_state_type = next_type;
+    void set_state(state::Type next) {
+        if (next == m_state_type || next == state::Type::null) return;
+        m_state_type = next;
         
         m_state.reset();
-        switch (next_type) {
-        case state::Type::Edit:     m_state = std::make_unique<state::Edit>();     break;
-        case state::Type::GameInit: m_state = std::make_unique<state::GameInit>(); break;
+        switch (next) {
+        case state::Type::Edit: m_state = std::make_unique<state::Edit>(); break;
+        case state::Type::Game: m_state = std::make_unique<state::Game>(); break;
         }
     }
     void run() {
@@ -65,14 +67,16 @@ public:
                 m_state->update();
                 Transforms::update();
 
-                for (auto& i : m_state->visible_layers) {
+                //Console::log("current fps: ", m_state->current_fps, "\n");
+
+                for (auto& i : m_state->get_visible_layers()) {
                     Sprites::draw(i, m_window);
-                }
-                Lines::draw(0, m_window);
+                    Lines::draw(i, m_window);
+                }                
                 
                 if (m_state->is_to_change()) {
-                    Console::log("m_state->is_to_change\n");
-                    set_state(m_state->next);
+                    //Console::log("m_state->is_to_change to ", state::to_string(m_state->get_next()), "\n");
+                    set_state(m_state->get_next());
                 }
                 m_window.display();
                 m_delta_time = std::chrono::steady_clock::now() - start;
