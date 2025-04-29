@@ -1,13 +1,14 @@
 F1 to switch between Edit and Game state
 
 Edit:
+
     Move mouse to top of window to access menu
     Press del on level in list to delete
     Import doesn't work yet
 
     wasd               - move camera / selected
     space              - show tile set
-    mouse wheel / 1-5 - change brush size
+    mouse wheel / 1-5  - change brush size
     ctrl               - select    
     x                  - move selected
     c                  - copy selected

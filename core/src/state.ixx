@@ -26,7 +26,7 @@ export namespace state {
         }
     }
     
-    std::filesystem::path tile_set_texture_path(u8c number) { return "res/textures/set_" + std::to_string((int)number) + ".png"; }
+    std::filesystem::path tile_set_texture_path(u8c tile_set_number) { return "res/textures/set_" + std::to_string((int)tile_set_number) + ".png"; }
 
     class State {
     private:
@@ -48,7 +48,8 @@ export namespace state {
             return true;
         }
 
-        i32 current_fps;
+        i32 current_fps = 0;
+        bool is_drawing_debug_lines = false;
 
         bool is_to_change() { return m_next != m_current; }
         state::Type get_next()    const { return m_next; }    void set_next(state::Type next) { m_next = next; }

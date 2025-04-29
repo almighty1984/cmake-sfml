@@ -8,32 +8,23 @@ import state;
 import types;
 
 export class Config {
-    static inline u8          m_scale      = 1;
-    static inline state::Type m_state_type = state::Type::Game;
+    static inline u8          s_scale      = 1;
+    static inline state::Type s_state_type = state::Type::Game;
+
 public:
-    static u8c         scale() { return m_scale; }
-    static state::Type state_type() { return m_state_type; }
+    static u8 scale() { return s_scale; }
+    static state::Type state_type() { return s_state_type; }
 
-    static std::string file_to_string(std::filesystem::path path) {
-        std::ifstream in_file(path);
-        if (!in_file) {
-            Console::error("Config::file_to_string ", path, " not found\n");
-            return {};
-        }
-        std::ostringstream oss{};
-        oss << in_file.rdbuf();
-        in_file.close();
-        return oss.str();
-    }
-
-    static bool load(std::filesystem::path path) {
+    static bool load(const std::filesystem::path& path) {
         std::ifstream in_file(path);
         if (!in_file) {
             Console::error("config::load ", path, " not found\n");
             return false;
         }
-        std::string text = file_to_string(path);
-        std::string state_string = state::to_string(m_state_type);
+        std::ostringstream oss{};
+        oss << in_file.rdbuf();
+        std::string text = oss.str();
+        std::string state_string = state::to_string(s_state_type);
 
         size_t start_tag = text.find("start_state", 0);
         size_t i = 0;
@@ -46,24 +37,23 @@ public:
                     ++i;
                 }
                 state_string = text.substr(i, end_line - i);
-                Console::log("Config::load found start: ", state_string.c_str(), "\n");
+                Console::log("config::load found start: ", state_string.c_str(), "\n");
             }
         }
-        m_state_type = state::type_from(state_string);
+        s_state_type = state::type_from(state_string);
 
-
-        size_t scale_tag = text.find("scale", 0);
+        size_t scale_label = text.find("scale", 0);
         i = 0;
-        if (scale_tag != std::string::npos) {
-            size_t end_line = text.find("\n", scale_tag);
-            size_t equals = text.find("=", scale_tag);
+        if (scale_label != std::string::npos) {
+            size_t end_line = text.find("\n", scale_label);
+            size_t equals = text.find("=", scale_label);
             if (equals < end_line) {
                 i = equals + 1;
                 while (i < end_line && (text.at(i) == '=' || text.at(i) == ' ' || text.at(i) == '	')) {
                     ++i;
                 }
-                m_scale = std::stoi(text.substr(i, end_line - i));
-                Console::log("Config::load found scale: ", (int)m_scale, "\n");
+                s_scale = std::stoi(text.substr(i, end_line - i));                
+                Console::log("config::load found scale: ", (int)s_scale, "\n");
             }
         }
 
@@ -113,11 +103,12 @@ public:
 
 
 
-        
+
 
         //m_scale = 4;
         //return Config{ .scale = 4 };
 
         return true;
     }
+
 };

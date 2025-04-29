@@ -4,8 +4,8 @@ module;
 module state.edit;
 
 import console;
-import transforms;
-import sprites;
+import transform;
+import sprite;
 import types;
 
 namespace state {
@@ -16,9 +16,9 @@ namespace state {
         f32c y = offset.y - std::fmodf(offset.y, 256.0f);
 
         for (auto& i : m_grid_sprite_ids) {
-            if (!Sprites::at(i)) continue;
-            if (Sprites::at(i)->offset == Vec2f{ x, y }) {
-                return Sprites::at(i)->id;
+            if (!sprite::Set::at(i)) continue;
+            if (sprite::Set::at(i)->offset == Vec2f{ x, y }) {
+                return sprite::Set::at(i)->id;
             }
         }
         return -1;
@@ -30,33 +30,33 @@ namespace state {
         f32c y = offset.y - std::fmodf(offset.y, 16.0f);
 
         for (auto& i : m_grid_map_sprite_ids) {
-            if (!Sprites::at(i)) continue;
-            if (Sprites::at(i)->offset == Vec2f{ x, y }) {
-                return Sprites::at(i)->id;
+            if (!sprite::Set::at(i)) continue;
+            if (sprite::Set::at(i)->offset == Vec2f{ x, y }) {
+                return sprite::Set::at(i)->id;
             }
         }
         return -1;
     }
     bool Edit::add_grid_sprite_id_at_offset(Vec2f offset) {
         for (auto& i : m_grid_sprite_ids) {
-            if (Sprites::at(i)->offset == offset) {
+            if (sprite::Set::at(i)->offset == offset) {
                 Console::log("state::Edit::add_grid_at ", offset.x, " ", offset.y, " already added\n");
                 return false;
             }
         }
-        m_grid_sprite_ids.push_back(Sprites::make(m_grid_texture_path));
-        Sprites::at(m_grid_sprite_ids.back())->id = m_grid_sprite_ids.back();
-        Sprites::at(m_grid_sprite_ids.back())->source_rect = { 0, 0, 256, 256 };
-        Sprites::at(m_grid_sprite_ids.back())->offset = offset;
-        Sprites::at(m_grid_sprite_ids.back())->transform_id = m_grid_transform_id;
-        Sprites::at(m_grid_sprite_ids.back())->layer = GRID_LAYER;
+        m_grid_sprite_ids.push_back(sprite::Set::make(m_grid_texture_path));
+        sprite::Set::at(m_grid_sprite_ids.back())->id = m_grid_sprite_ids.back();
+        sprite::Set::at(m_grid_sprite_ids.back())->source_rect = { 0, 0, 256, 256 };
+        sprite::Set::at(m_grid_sprite_ids.back())->offset = offset;
+        sprite::Set::at(m_grid_sprite_ids.back())->transform_id = m_grid_transform_id;
+        sprite::Set::at(m_grid_sprite_ids.back())->layer = GRID_LAYER;
 
-        m_grid_map_sprite_ids.push_back(Sprites::make(m_grid_map_texture_path));
-        Sprites::at(m_grid_map_sprite_ids.back())->id = m_grid_map_sprite_ids.back();
-        Sprites::at(m_grid_map_sprite_ids.back())->source_rect = { 0, 0, 16, 16 };
-        Sprites::at(m_grid_map_sprite_ids.back())->offset = offset / 16.0f;
-        Sprites::at(m_grid_map_sprite_ids.back())->transform_id = m_grid_map_transform_id;
-        Sprites::at(m_grid_map_sprite_ids.back())->layer = GRID_MAP_LAYER;
+        m_grid_map_sprite_ids.push_back(sprite::Set::make(m_grid_map_texture_path));
+        sprite::Set::at(m_grid_map_sprite_ids.back())->id = m_grid_map_sprite_ids.back();
+        sprite::Set::at(m_grid_map_sprite_ids.back())->source_rect = { 0, 0, 16, 16 };
+        sprite::Set::at(m_grid_map_sprite_ids.back())->offset = offset / 16.0f;
+        sprite::Set::at(m_grid_map_sprite_ids.back())->transform_id = m_grid_map_transform_id;
+        sprite::Set::at(m_grid_map_sprite_ids.back())->layer = GRID_MAP_LAYER;
         return true;
     }
     bool Edit::erase_grid_sprite_id_at_offset(Vec2f offset) {
@@ -85,7 +85,7 @@ namespace state {
         m_grid_sprite_ids.clear();
         m_grid_sprite_ids = resized_grid_sprite_ids;
         Console::log("state::Edit::erase_grid_at grid_sprite_ids size: ", m_grid_sprite_ids.size(), "\n");
-        Sprites::erase(grid_sprite_id);
+        sprite::Set::erase(grid_sprite_id);
 
 
         //Console::log("state::Edit::erase_grid_sprite_id_at_offset ", offset.x, " ", offset.y, "\n");        
@@ -114,27 +114,27 @@ namespace state {
         m_grid_map_sprite_ids.clear();
         m_grid_map_sprite_ids = resized_grid_map_sprite_ids;
         Console::log("state::Edit::erase_grid_at grid_map_sprite_ids size: ", m_grid_map_sprite_ids.size(), "\n");
-        Sprites::erase(grid_map_sprite_id);
+        sprite::Set::erase(grid_map_sprite_id);
 
 
         return true;
     }
     bool Edit::clear_grid_sprites() {
         /*if (m_grid_transform_id != -1) {
-            Transforms::erase(m_grid_transform_id);
+            transform::Set::erase(m_grid_transform_id);
             m_grid_transform_id = -1;
         }*/
         for (auto& i : m_grid_sprite_ids) {
-            if (!Sprites::at(i)) continue;
-            if (Sprites::at(i)->transform_id == m_grid_transform_id) {
-                Sprites::erase(i);
+            if (!sprite::Set::at(i)) continue;
+            if (sprite::Set::at(i)->transform_id == m_grid_transform_id) {
+                sprite::Set::erase(i);
             }
         }        
         m_grid_sprite_ids.clear();
         for (auto& i : m_grid_map_sprite_ids) {
-            if (!Sprites::at(i)) continue;
-            if (Sprites::at(i)->transform_id == m_grid_map_transform_id) {
-                Sprites::erase(i);
+            if (!sprite::Set::at(i)) continue;
+            if (sprite::Set::at(i)->transform_id == m_grid_map_transform_id) {
+                sprite::Set::erase(i);
             }
         }
         m_grid_map_sprite_ids.clear();
