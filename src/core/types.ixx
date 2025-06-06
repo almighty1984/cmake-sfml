@@ -30,6 +30,34 @@ export using f64c = double const;
 
 export constexpr u8 NUM_VISIBLE_LAYERS = 14;
 
+
+export namespace start {
+    enum class Type {
+        null,
+        center,
+        L_0,
+        R_0        
+    };
+    struct Info {
+        start::Type type   = Type::center;
+        u8          number = 0;
+    };
+    Type from_string(const char* s) {
+        if      (s == "center") return Type::center;
+        else if (s == "L_0")    return Type::L_0;
+        else if (s == "R_0")    return Type::R_0;
+        else                    return Type::null;
+    }
+    const char* to_string(const Type type) {
+        switch (type) {
+        case Type::center:  return "center";
+        case Type::L_0:     return "L_0";
+        case Type::R_0:     return "R_0";
+        default:            return ""; }
+    }
+}
+ 
+
 export struct Color {
     u8 r = 127, g = 127, b = 127;
     bool operator ==(const Color& other) { return (r == other.r && g == other.g && b == other.b); }
@@ -50,8 +78,8 @@ struct Rect {
     Rect& operator =(const Rect& other) { x = other.x, y = other.y, w = other.w, h = other.h; return *this; }
     template<typename T>
     Rect& operator *=(const T scalar) { x *= scalar, y *= scalar, w *= scalar, h *= scalar; return *this; }
-    bool operator ==(const Rect& other) { return (x == other.x && y == other.y && w == other.w && h == other.h); }
-    bool operator !=(const Rect& other) { return (x != other.x || y != other.y || w != other.w || h != other.h); }
+    bool operator ==(const Rect& other) const { return (x == other.x && y == other.y && w == other.w && h == other.h); }
+    bool operator !=(const Rect& other) const { return !operator==(other); }
 };
 
 export template<typename T> requires std::integral<T> || std::floating_point<T>

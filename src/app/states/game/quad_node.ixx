@@ -218,10 +218,12 @@ public:
 
                         sprite::Infoc a_info = { .type = a->parent->sprite_type(),
                                                  .rect = a_rect,
-                                                 .velocity = a->parent->transform()->velocity };
+                                                 .velocity = a->parent->transform()->velocity,
+                                                 .collider_id = b->id };
                         sprite::Infoc b_info = { .type = b->parent->sprite_type(),
                                                  .rect = b_rect,
-                                                 .velocity = b->parent->transform()->velocity };
+                                                 .velocity = b->parent->transform()->velocity,
+                                                 .collider_id = a->id };
                         a->collide_y(a_info, b_info);
                         b->collide_y(b_info, a_info);
                     }
@@ -245,13 +247,15 @@ public:
 
                         sprite::Infoc a_info = { .type = a->parent->sprite_type(),
                                                  .rect = a_rect,
-                                                 .velocity = a->parent->transform()->velocity };
+                                                 .velocity = a->parent->transform()->velocity,
+                                                 .collider_id = b->id };
                         sprite::Infoc b_info = { .type =  b->parent->sprite_type(),
                                                  .rect = b_rect,
-                                                 .velocity = b->parent->transform()->velocity };
+                                                 .velocity = b->parent->transform()->velocity,
+                                                 .collider_id = a->id };
                         a->collide_x(a_info, b_info);
                         b->collide_x(b_info, a_info);
-                    }                            
+                    }
                 }
             }
         }

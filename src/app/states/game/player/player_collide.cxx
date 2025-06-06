@@ -6,14 +6,37 @@ import console;
 void player::Object::collide_x(sprite::Infoc our, sprite::Infoc other) {
     if (!transform()) return;
 
+    //if (std::find(m_melee_collider_ids.begin(), m_melee_collider_ids.end(), other.collider_id) != m_melee_collider_ids.end()) {
+    if (other.collider_id == m_melee_left_collider_id || other.collider_id == m_melee_right_collider_id) {
+        collide_melee_x(our, other);
+        return;
+    }
+
     f32c overlap_x = our.rect.x < other.rect.x ? our.rect.w - other.rect.x : -(other.rect.w - our.rect.x);
 
     //Console::log(sprite::type_to_string(other.type), " overlap_x: ", overlap_x, "\n");
-
+    
     if (other.type == sprite::Type::clip) {
         transform()->position.x -= overlap_x;
         transform()->velocity.x = 0.0f;
         transform()->moved_velocity.x = 0.0f;
+    } else if (other.type == sprite::Type::clip_duck) {
+        if (other.rect.y < our.rect.y && is_on_ground && m_is_ducking || m_is_climbing_ledge) {
+            m_time_left_rising = m_time_to_rise;
+            m_time_left_ducking = m_time_to_duck;
+            return;
+        }
+        transform()->position.x -= overlap_x;
+        transform()->velocity.x = 0.0f;
+        transform()->moved_velocity.x = 0.0f;
+
+        if (is_on_ground) {
+            m_time_left_rising = m_time_to_rise;
+            m_time_left_ducking = m_time_to_duck;
+            m_is_ducking = true;
+            //press(key_down);
+            //collider::aabb::Set::at(aabb_ids().back())->set_rect(m_transform_id, { 0, 16, 16, 8 });
+        }
     } else if (other.type == sprite::Type::clip_U || other.type == sprite::Type::slope_U) {
     } else if (other.type == sprite::Type::clip_D) {
     } else if (other.type == sprite::Type::clip_ledge) {
@@ -36,11 +59,11 @@ void player::Object::collide_x(sprite::Infoc our, sprite::Infoc other) {
             }            
             sprite()->is_leftward = !m_is_wall_to_left;
         }
-        if (is_pressed(key_jump) && !m_is_locked_jump && m_time_left_jumping_wall <= 0.0f) {
+        if (is_pressed(key_jump) && !m_is_hovering && !m_is_locked_jump && m_time_left_jumping_wall <= 0.0f) {
             m_time_left_jumping_wall = m_time_to_jump_wall;
             m_num_jumps = 0;
         }
-        if (transform()->velocity.y > 0.0f && !is_on_ground) {
+        if (transform()->velocity.y > 0.0f && !is_on_ground && !m_is_hovering && !m_is_locked_jump) {
             if ( m_is_wall_to_left && is_pressed(key_left) ||
                 !m_is_wall_to_left && is_pressed(key_right)) {
                 if (!m_is_on_ledge && our.rect.y <= other.rect.y - 4 && our.rect.y >= other.rect.y - 2 - 4) {
@@ -94,7 +117,14 @@ void player::Object::collide_x(sprite::Infoc our, sprite::Infoc other) {
             m_time_left_jumping_wall = m_time_to_jump_wall;
             m_num_jumps = 0;
         }
-    } else if (other.type == sprite::Type::level_start) {
+    } else if (other.type == sprite::Type::level_L_0) {
+        m_next_level = start::Type::L_0;
+        m_next_start = { start::Type::R_0, 0 };
+    } else if (other.type == sprite::Type::level_R_0) {
+        m_next_level = start::Type::R_0;
+        m_next_start = { start::Type::L_0, 0 };
+    } else if (other.type == sprite::Type::level_center) {
+        m_is_to_write_save = true;        
     } else if (other.type == sprite::Type::slope_L_1x1) {
         //if (transform()->velocity.x < 0.0f) return;
         //transform()->position.y -= overlap_x;
@@ -147,16 +177,53 @@ void player::Object::collide_x(sprite::Infoc our, sprite::Infoc other) {
 void player::Object::collide_y(sprite::Infoc our, sprite::Infoc other) {
     if (!transform()) return;
 
-    f32c overlap_y = our.rect.y < other.rect.y ? our.rect.h - other.rect.y : -(other.rect.h - our.rect.y);
+    if (other.collider_id == m_melee_left_collider_id || other.collider_id == m_melee_right_collider_id) {
+        collide_x(our, other);
+        return;
+    }
 
+    f32c overlap_y = our.rect.y < other.rect.y ? our.rect.h - other.rect.y : -(other.rect.h - our.rect.y);
     
     //Console::log(sprite::type_to_string(other.type), " overlap_y: ", overlap_y, "\n");
   
-    if (other.type == sprite::Type::clip) {
+    if (other.type == sprite::Type::arch_L_1x1   || other.type == sprite::Type::arch_R_1x1 || 
+        other.type == sprite::Type::arch_L_2x1_0 || other.type == sprite::Type::arch_L_2x1_1 ||
+        other.type == sprite::Type::arch_R_2x1_0 || other.type == sprite::Type::arch_R_2x1_1) {
+        if (our.rect.y < other.rect.y) return;
+        if (is_on_ground) {
+            m_time_left_ducking = m_time_to_duck;
+        } else {
+            sound::Set::at(m_bump_head_sound_id)->position({ position().x / 160.0f, position().y / 90.0f });
+            sound::Set::at(m_bump_head_sound_id)->play();
+        }
         transform()->position.y -= overlap_y;
-        transform()->velocity.y = 0.0f;
-        is_on_ground = true;
-        is_on_slope = false;
+        transform()->velocity.y = std::abs(transform()->velocity.y) * 0.75f;        
+    } else if (other.type == sprite::Type::clip) {
+        transform()->position.y -= overlap_y;
+        transform()->velocity.y = transform()->moved_velocity.y = 0.0f;
+        if (our.rect.y < other.rect.y) {
+            is_on_ground = true;
+            is_on_slope = false;
+        }
+    } else if (other.type == sprite::Type::clip_duck) {
+        if (other.rect.y < our.rect.y && is_on_ground && m_is_ducking || m_is_climbing_ledge) {
+            m_time_left_rising = m_time_to_rise;
+            m_time_left_ducking = m_time_to_duck;
+            return;
+        }
+        transform()->position.y -= overlap_y;
+        transform()->velocity.y = transform()->moved_velocity.y = 0.0f;
+
+        //if (our.rect.y + our.rect.h > other.rect.y + other.rect.h
+            //&& (sprite()->is_leftward && other.rect.x + other.rect.w < our.rect.x) || (!sprite()->is_leftward && other.rect.x > our.rect.x + our.rect.w)
+            //) {
+        m_time_left_rising = m_time_to_rise;
+        m_time_left_ducking = m_time_to_duck;        
+    
+        if (our.rect.y < other.rect.y) {
+            is_on_ground = true;
+            is_on_slope = false;
+        }       
     } else if (other.type == sprite::Type::clip_D || other.type == sprite::Type::clip_D_L || other.type == sprite::Type::clip_D_R) {
         if (transform()->velocity.y > 0.0f) return;
         transform()->position.y -= overlap_y;
@@ -176,20 +243,23 @@ void player::Object::collide_y(sprite::Infoc our, sprite::Infoc other) {
         if (our.rect.y < other.rect.y) {
             is_on_ground = true;
             is_on_slope = false;
-            transform()->velocity.y = 0.0f;
+            transform()->velocity.y = transform()->moved_velocity.y = 0.0f;
         } else {            
             transform()->velocity.y = std::abs(transform()->velocity.y) * 0.75f;
+            sound::Set::at(m_bump_head_sound_id)->position({ position().x / 160.0f, position().y / 90.0f });
             sound::Set::at(m_bump_head_sound_id)->play();
-        }
+        }        
     } else if (other.type == sprite::Type::clip_U || other.type == sprite::Type::slope_U) {
         if (transform()->velocity.y < 0.0f) return;
         transform()->position.y -= overlap_y;
         
-        transform()->velocity.y = 0.0f;
-        transform()->moved_velocity.y = 0.0f;
+        transform()->velocity.y = transform()->moved_velocity.y = 0.0f;
         is_on_ground = true;
         is_on_slope = other.type == sprite::Type::slope_U;
-    } else if (other.type == sprite::Type::level_start) {
+    } else if (other.type == sprite::Type::level_L_0 || other.type == sprite::Type::level_R_0) {        
+        collide_x(our, other);
+    } else if (other.type == sprite::Type::level_center) {
+        collide_x(our, other);
     } else if (other.type == sprite::Type::slope_L_1x1) {
         //if (transform()->velocity.y < 0.0f) return;
         transform()->position.y -= overlap_y;

@@ -108,7 +108,7 @@ export namespace input {
         static bool    is_valid(size_t i) { return (i < m_objects.size() && m_objects.at(i)) ? true : false; }
         static Object* at(size_t i)       { return (i < m_objects.size()) ? m_objects.at(i) : nullptr;       }
 
-        static void handle_events(Window& window) {
+        static void handle_events(Window& window) {            
             while (const std::optional sf_event = window.poll_event()) {
                 scroll = 0.0f;
                 if (sf_event->is<sf::Event::Closed>()) {

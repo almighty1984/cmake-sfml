@@ -40,7 +40,7 @@ namespace state {
     bool Edit::add_grid_at_offset(Vec2fc offset) {
         for (auto& i : m_grid_sprite_ids) {
             if (sprite::Set::at(i)->offset == offset) {
-                Console::log("state::Edit::add_grid_at ", offset.x, " ", offset.y, " already added\n");
+                Console::log("state::Edit::add_grid_at_offset ", offset.x, " ", offset.y, " already added\n");
                 return false;
             }
         }
@@ -60,18 +60,18 @@ namespace state {
         sprite::Set::at(grid_map_sprite_id)->transform_id = m_grid_map_transform_id;
         sprite::Set::at(grid_map_sprite_id)->layer = GRID_MAP_LAYER;
 
-        Console::log("state::Edit::add_grid_at ", offset.x, " ", offset.y, " sprite id: ", grid_sprite_id, " map sprite id: ", grid_map_sprite_id, "\n");
+        Console::log("state::Edit::add_grid_at_offset ", offset.x, " ", offset.y, " sprite id: ", grid_sprite_id, " map sprite id: ", grid_map_sprite_id, "\n");
         return true;
     }
     bool Edit::erase_grid_at_offset(Vec2fc offset) {
         if (m_grid_sprite_ids.empty() || m_grid_sprite_ids.size() < 2) {
-            Console::log("state::Edit::erase_grid_at grid size is 1");
+            Console::log("state::Edit::erase_grid_at_offset grid size is 1");
             return false;
         }
         i32c grid_sprite_id = Edit::grid_sprite_id_at_offset(offset);
         if (grid_sprite_id == -1) return false;
 
-        Console::log("state::Edit::erase_grid_at sprite_id: ", grid_sprite_id, "\n");
+        Console::log("state::Edit::erase_grid_at_offset sprite_id: ", grid_sprite_id, "\n");
 
         bool is_found = false;
         std::vector<i32> resized_grid_sprite_ids;
@@ -83,12 +83,12 @@ namespace state {
             }
         }
         if (!is_found) {
-            Console::log("state::Edit::erase_grid_at grid_sprite_id not found ", grid_sprite_id, "\n");
+            Console::log("state::Edit::erase_grid_at_offset grid_sprite_id not found ", grid_sprite_id, "\n");
             return false;
         }
         m_grid_sprite_ids.clear();
         m_grid_sprite_ids = resized_grid_sprite_ids;
-        Console::log("state::Edit::erase_grid_at grid_sprite_ids size: ", m_grid_sprite_ids.size(), "\n");
+        Console::log("state::Edit::erase_grid_at_offset grid_sprite_ids size: ", m_grid_sprite_ids.size(), "\n");
         sprite::Set::erase(grid_sprite_id);
 
         //Console::log("state::Edit::erase_grid_at_offset ", offset.x, " ", offset.y, "\n");        
@@ -100,7 +100,7 @@ namespace state {
         i32c grid_map_sprite_id = Edit::grid_map_sprite_id_at_offset(grid_offset);
         if (grid_map_sprite_id == -1) return false;
         if (!is_found) {
-            Console::log("state::Edit::erase_grid_at grid_map_sprite_id not found ", grid_map_sprite_id, "\n");
+            Console::log("state::Edit::erase_grid_at_offset grid_map_sprite_id not found ", grid_map_sprite_id, "\n");
             return false;
         }
         is_found = false;
@@ -117,7 +117,6 @@ namespace state {
         m_grid_map_sprite_ids = resized_grid_map_sprite_ids;
         Console::log("state::Edit::erase_grid_at grid_map_sprite_ids size: ", m_grid_map_sprite_ids.size(), "\n");
         sprite::Set::erase(grid_map_sprite_id);
-
 
         return true;
     }

@@ -10,12 +10,13 @@ import sprite;
 import types;
 
 namespace state {
-    Edit::Edit(u16c window_w, u16c window_h) {
+    Edit::Edit(u16c window_w, u16c window_h, const std::filesystem::path& path) {
         Console::log("state::Edit()\n");
         for (u8 i = 0; i < NUM_VISIBLE_LAYERS; ++i) {
             add_visible_layer(i);
         }
-        set_current(state::Type::Edit);
+        current(state::Type::edit);
+
 
         //load_types_from_text_file("edit.cfg");
 
@@ -27,11 +28,6 @@ namespace state {
         Console::log("state::Edit level transform id: ", m_level_transform_id, "\n");
         
 
-        m_position_on_grid_map_sprite_id = sprite::Set::make("res/textures/tile_yellow.png");
-        sprite::Set::at(m_position_on_grid_map_sprite_id)->source_rect = { 0, 0, 1, 1 };
-        sprite::Set::at(m_position_on_grid_map_sprite_id)->offset = Vec2f{ 7.0f, 7.0f };
-        sprite::Set::at(m_position_on_grid_map_sprite_id)->transform_id = m_grid_map_transform_id;
-        sprite::Set::at(m_position_on_grid_map_sprite_id)->layer = GRID_LAYER + 1;
 
         m_selection_on_tile_set_transform_id = transform::Set::make();
         transform::Set::at(m_selection_on_tile_set_transform_id)->position = { 0.0f, 512.0f };
@@ -143,7 +139,14 @@ namespace state {
         // FIXME: causes sprites error when added earlier
         m_grid_transform_id = transform::Set::make();
         m_grid_map_transform_id = transform::Set::make();
-        add_grid_at_offset({ 0.0f,0.0f });
+        add_grid_at_offset({ 0.0f, 0.0f });
+
+
+        m_position_on_grid_map_sprite_id = sprite::Set::make("res/textures/tile_yellow.png");
+        sprite::Set::at(m_position_on_grid_map_sprite_id)->source_rect = { 0, 0, 1, 1 };
+        sprite::Set::at(m_position_on_grid_map_sprite_id)->offset = Vec2f{ 7.0f, 7.0f };
+        sprite::Set::at(m_position_on_grid_map_sprite_id)->transform_id = m_grid_map_transform_id;
+        sprite::Set::at(m_position_on_grid_map_sprite_id)->layer = GRID_LAYER + 1;
 
 
         m_mouse_transform_id = transform::Set::make();
@@ -151,6 +154,9 @@ namespace state {
         sprite::Set::at(m_mouse_sprite_ids.back())->transform_id = m_mouse_transform_id;
         sprite::Set::at(m_mouse_sprite_ids.back())->layer = MOUSE_LAYER;
 
+        load_level_sprites(path);
+
+        m_level_path = path;
     }
     Edit::~Edit() {
         Console::log("state::Edit::~Edit()\n");

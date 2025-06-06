@@ -43,7 +43,7 @@ public:
     void close()   { m_sf_window.close();   }
     void display() { m_sf_window.display(); }
     void draw(line::Object* line) {
-        if (!line) return;
+        if (!line || line->is_hidden) return;
         /*if (line->is_debug) {
             if (line->start.x < 0.0f && line->end.x < 0.0f ||
                 line->start.x > (f32)m_w && line->end.x >(f32)m_w ||
@@ -55,7 +55,7 @@ public:
         m_sf_window.draw(line->sf_vertices, 4, sf::PrimitiveType::TriangleFan);
     }
     void draw(sprite::Object* sprite) {
-        if (!sprite || !transform::Set::at(sprite->transform_id)) return;       
+        if (!sprite || !transform::Set::at(sprite->transform_id)) return;
         if (transform::Set::at(sprite->transform_id)->position.x + sprite->offset.x < m_view.x - sprite->source_rect.w ||
             transform::Set::at(sprite->transform_id)->position.x + sprite->offset.x > m_view.w ||
             transform::Set::at(sprite->transform_id)->position.y + sprite->offset.y < m_view.y - sprite->source_rect.h ||

@@ -116,27 +116,28 @@ export namespace transform {
 
     public:
         static Object* at(size_t i) { return (i >= 0 && i < m_objects.size()) ? m_objects.at(i) : nullptr; }
-        static bool       is_valid(size_t i) { return (i >= 0 && i < m_objects.size() && m_objects.at(i)) ? true : false; }
-        static size_t     size() { return m_objects.size(); }
+        static bool    is_valid(size_t i) { return (i >= 0 && i < m_objects.size() && m_objects.at(i)) ? true : false; }
+        static size_t  size() { return m_objects.size(); }
 
         static i32 make() {
-            Object* transform = new Object;
+            Object* object = new Object;
             if (!m_unused_ids.empty()) {
-                transform->id = m_unused_ids.back();
-                m_unused_ids.pop_back();
-                if (transform->id >= 0 && transform->id < m_objects.size() && m_objects.at(transform->id)) {
-                    delete m_objects.at(transform->id);
+                object->id = m_unused_ids.back();
+                m_unused_ids.pop_back();                
+                if (!m_objects.empty() && object->id >= 0 && object->id < m_objects.size() && m_objects.at(object->id)) {
+                    delete m_objects.at(object->id);
+                    m_objects.at(object->id) = nullptr;
                 }
             } else {
-                transform->id = m_objects.size();
+                object->id = m_objects.size();
                 m_objects.push_back(nullptr);
             }            
-            m_objects.at(transform->id) = transform;
-            return transform->id;
+            m_objects.at(object->id) = object;
+            return object->id;
         }
         static bool erase(size_t i) {
             if (!(i < m_objects.size()) || !m_objects.at(i)) {
-                Console::log("transform::Set::erase ", i, "can't do it\n");
+                Console::log("transform::Set::erase ", i, " can't do it\n");
                 return false;
             }
             delete m_objects.at(i);
@@ -158,5 +159,4 @@ export namespace transform {
             m_unused_ids.clear();
         }
     };
-
 }

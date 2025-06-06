@@ -127,12 +127,15 @@ namespace state {
 
     void Edit::load_menu_up_list(const std::string& menu, const std::filesystem::path& dir_path) {
         m_menu_up_lists[menu].items.clear();
-        for (auto const& dir_entry : std::filesystem::directory_iterator{ dir_path }) {
-            add_to_menu_up_list(menu, dir_entry);
+        for (auto const& dir_entry : std::filesystem::directory_iterator{ dir_path }) {            
+            add_to_menu_up_list(menu, dir_entry);            
         }
         transform::Set::at(m_menu_up_lists[menu].transform_id)->position = { 0.0f, m_menu_up_lists[menu].bg_h * -1.0f };
     }
     bool Edit::add_to_menu_up_list(const std::string& menu, const std::filesystem::path& path) {
+        if (path.string().substr(path.string().size() - 3, 3) != "bin") {
+            return false;
+        }
         if (menu != m_menu_up_labels[0] && menu != m_menu_up_labels[1]) {
             Console::log("state::Edit::add_to_menu_up_list ", menu, " not implemented\n");
             return false;
@@ -150,8 +153,9 @@ namespace state {
         if (res_path_pos == std::string::npos) {
             Console::log("state::Edit::add_to_menu_up_list res" + separator_str + " not found!\n");
             return false;
-        }
-        path_str.erase(0, res_path_pos);
+        }        
+        path_str.erase(0, res_path_pos);    // keep last part of the path (res/levels/...)
+        
 
         std::unique_ptr<BitmapText> bitmap_text = std::make_unique<BitmapText>();
         bitmap_text->transform_id = m_menu_up_lists[menu].transform_id;

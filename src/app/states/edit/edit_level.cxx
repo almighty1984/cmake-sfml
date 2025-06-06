@@ -27,13 +27,13 @@ namespace state {
             if (!sprite::Set::at(i)) continue;
             sprite::Set::at(i)->offset += amount;
             
-            if (amount.x < 0.0f && sprite::Set::at(i)->offset.x + transform::Set::at(m_level_transform_id)->position.x < view.x ||
-                amount.x > 0.0f && sprite::Set::at(i)->offset.x + transform::Set::at(m_level_transform_id)->position.x > view.w - 48.0f) {
+            if (amount.x < 0.0f && sprite::Set::at(i)->offset.x + transform::Set::at(m_level_transform_id)->position.x < view().x ||
+                amount.x > 0.0f && sprite::Set::at(i)->offset.x + transform::Set::at(m_level_transform_id)->position.x > view().w - 48.0f) {
                 transform::Set::at(m_level_transform_id)->position.x -= amount.x;
                 transform::Set::at(m_grid_transform_id)->position.x -= amount.x;                
             }
-            if (amount.y < 0.0f && sprite::Set::at(i)->offset.y + transform::Set::at(m_level_transform_id)->position.y < view.y ||
-                amount.y > 0.0f && sprite::Set::at(i)->offset.y + transform::Set::at(m_level_transform_id)->position.y > view.h - 32.0f) {
+            if (amount.y < 0.0f && sprite::Set::at(i)->offset.y + transform::Set::at(m_level_transform_id)->position.y < view().y ||
+                amount.y > 0.0f && sprite::Set::at(i)->offset.y + transform::Set::at(m_level_transform_id)->position.y > view().h - 32.0f) {
                 transform::Set::at(m_level_transform_id)->position.y -= amount.y;
                 transform::Set::at(m_grid_transform_id)->position.y -= amount.y;
             }
@@ -42,7 +42,7 @@ namespace state {
             if (!sprite::Set::at(i)) continue;
             sprite::Set::at(i)->offset += amount;
         }
-        Console::log("state::Edit::move_selected_on_level view: ", view.w, " ", view.h, "\n");
+        Console::log("state::Edit::move_selected_on_level view: ", view().w, " ", view().h, "\n");
     }
     void Edit::finish_moving_selected_on_level() {
         Console::log("state::Edit::finish_moving_on_level layer: ", (int)m_layer, "\n");

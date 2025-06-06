@@ -74,7 +74,6 @@ void tile::Object::load_config(const std::filesystem::path& path) {
                             size_t end_line = text.find("\n", aabb_open);
                             size_t aabb_close = text.find("}", aabb_open);
                             if (aabb_close < end_line) {
-
                                 Rectf rect;
 
                                 size_t value_0 = aabb_open + 1;
@@ -112,18 +111,18 @@ void tile::Object::load_config(const std::filesystem::path& path) {
 
                     Vec2fc offset = sprite::Set::at(m_sprite_id) ? sprite::Set::at(m_sprite_id)->offset : Vec2f{ 0.0f, 0.0f };
 
-                    i32c id = collider::aabb::Set::make(m_transform_id, { offset.x + i.x, offset.y + i.y, i.w, i.h });
+                    i32c id = aabb::Set::make(m_transform_id, { offset.x + i.x, offset.y + i.y, i.w, i.h });
 
                     //Console::log("Tile::load_config, ", offset.x + i.x, " ", offset.y + i.y, " ", i.w, " ", i.h, "\n");
 
                     //i32c id = collider::aabb::Set::make(transform_id, { transform()->position.x + i.x, transform()->position.y + i.y, i.w, i.h });
 
-
-                    collider::aabb::Set::at(id)->color(color);
-                    collider::aabb::Set::at(id)->start_color(color);
-                    collider::aabb::Set::at(id)->parent = this;
-                    //collider::aabb::Set::at(id)->sprite_type = sprite_type();
-                    collider::aabb::Set::at(id)->update();
+                    aabb::Set::at(id)->id = id;
+                    aabb::Set::at(id)->color(color);
+                    aabb::Set::at(id)->start_color(color);
+                    aabb::Set::at(id)->parent = this;
+                    //aabb::Set::at(id)->sprite_type = sprite_type();
+                    aabb::Set::at(id)->update();
                     aabb_ids.push_back(id);
                 }
                 //m_aabb_id = collider::aabb::Set::make(m_transform_id, { 8,8,8,8 });
@@ -134,17 +133,8 @@ void tile::Object::load_config(const std::filesystem::path& path) {
         }
     }
 
-
-
-
-
-
-
-
-
-
-
-    bool is_hidden = false;
+    bool is_debug = false,
+        is_hidden = false;
     const size_t sprite_label = text.find("Sprite", 0);
     if (sprite_label != std::string::npos) {
         size_t sprite_open = text.find("{", sprite_label);
@@ -152,6 +142,17 @@ void tile::Object::load_config(const std::filesystem::path& path) {
             ++sprite_open;
             const size_t sprite_close = text.find("\n}", sprite_open);
             if (sprite_close != std::string::npos) {
+                const size_t is_debug_label = text.find("is_debug", sprite_open);
+                if (is_debug_label < sprite_close) {
+                    const size_t end_line = text.find("\n", is_debug_label);
+                    size_t is_debug_start = text.find("=", is_debug_label);
+                    if (is_debug_start < end_line) {
+                        ++is_debug_start;
+                        while (text.at(is_debug_start) == '	' || text.at(is_debug_start) == ' ') ++is_debug_start;
+                        is_debug = text.substr(is_debug_start, end_line - is_debug_start) == "true" ? true : false;
+                    }
+                }
+
                 const size_t is_hidden_label = text.find("is_hidden", sprite_open);
                 if (is_hidden_label < sprite_close) {
                     const size_t end_line = text.find("\n", is_hidden_label);
@@ -209,11 +210,13 @@ void tile::Object::load_config(const std::filesystem::path& path) {
                             while (text.at(value_3) == '	' || text.at(value_3) == ' ') ++value_3;
                             size_t value_3_end = source_rect_close;
                             while (text.at(value_3_end) == '	' || text.at(value_3_end) == ' ') --value_3_end;
-                                
-                            source_rect.h = std::stoi(text.substr(value_3, value_3_end - value_3));                         
+
+                            source_rect.h = std::stoi(text.substr(value_3, value_3_end - value_3));
                             sprite()->source_rect = source_rect;
 
                             Console::log("tile::Object::load_config source_rect: ", source_rect.x, " ", source_rect.y, " ", source_rect.w, " ", source_rect.h, "\n");
+
+                            sprite()->origin = { source_rect.w / 2.0f, source_rect.h / 2.0f };
                         }
                     }
                 }
@@ -236,16 +239,16 @@ void tile::Object::load_config(const std::filesystem::path& path) {
                             if (comma_0 < end_line) {
                                 offset.x = std::stof(text.substr(value_0, comma_0 - value_0));
                             }
-
                             size_t value_1 = comma_0 + 1;
                             while (text.at(value_1) == '	' || text.at(value_1) == ' ') ++value_1;
                             size_t value_1_end = offset_close;
                             while (text.at(value_1_end) == '	' || text.at(value_1_end) == ' ') --value_1_end;
 
                             offset.y = std::stoi(text.substr(value_1, value_1_end - value_1));
+                                                        
+                            sprite()->offset += offset; // Add to already set level offset
 
-                            sprite()->offset = offset;
-                            Console::log("tile::Object::load_config offset: ", offset.x, " ", offset.y, "\n");
+                            //Console::log("tile::Object::load_config offset: ", offset.x, " ", offset.y, "\n");
                         }
                     }
                 }
@@ -259,6 +262,95 @@ void tile::Object::load_config(const std::filesystem::path& path) {
 
 
 
-    //sprite()->is_hidden = is_hidden;
+    sprite::Set::at(m_sprite_id)->is_debug = is_debug;
     sprite::Set::at(m_sprite_id)->is_hidden = is_hidden;
+
+    const size_t animations_label = text.find("Animations", 0);
+    if (animations_label != std::string::npos) {
+        size_t animations_open = text.find("{", animations_label);
+        if (animations_open != std::string::npos) {
+            ++animations_open;
+            const size_t animations_close = text.find("\n}", animations_open);
+            if (animations_close != std::string::npos) {
+
+                size_t current_equals = animations_open;
+
+                while (1) {
+                    current_equals = text.find("=", current_equals + 1);
+                    if (current_equals > animations_close) {
+                        break;
+                    }
+                    const size_t end_line = text.find("\n", current_equals);
+                    const size_t current_open = text.find("{", current_equals);
+                    const size_t current_close = text.find("}", current_equals);
+
+                    if (current_open < end_line && current_close < end_line) {
+                        u16 source_y = 0;
+                        f32 speed = 0.0f;
+                        u16 num_loops = 0;
+
+                        size_t value_0 = current_open + 1;
+                        while (text.at(value_0) == '	' || text.at(value_0) == ' ') ++value_0;
+                        const size_t comma_0 = text.find(",", value_0);
+                        if (comma_0 < end_line) {
+                            source_y = std::stoi(text.substr(value_0, comma_0 - value_0));
+                        }
+                        size_t value_1 = comma_0 + 1;
+                        while (text.at(value_1) == '	' || text.at(value_1) == ' ') ++value_1;
+                        const size_t comma_1 = text.find(",", value_1);
+                        if (comma_1 < end_line) {
+                            speed = std::stof(text.substr(value_1, comma_1 - value_1));
+                        }
+                        size_t value_2 = comma_1 + 1;
+                        while (text.at(value_2) == '	' || text.at(value_2) == ' ') ++value_2;
+                        size_t value_2_end = current_close;
+                        while (text.at(value_2_end) == '	' || text.at(value_2_end) == ' ') --value_2_end;
+                        num_loops = std::stoi(text.substr(value_2, value_2_end - value_2));
+
+                        size_t current_label_start = text.rfind("\n", current_equals);
+                        while (text.at(current_label_start) == '	' || text.at(current_label_start) == ' ' || text.at(current_label_start) == '\n') ++current_label_start;
+                        size_t current_label_end = current_equals;
+                        while (text.at(current_label_end - 1) == '	' || text.at(current_label_end - 1) == ' ') --current_label_end;
+
+                        std::string current_label_str = text.substr(current_label_start, current_label_end - current_label_start);                        
+
+                        m_current_anim_id = -1;
+                        if (current_label_str == "idle") {
+                            m_idle_anim_id = anim::Set::make();
+                            m_current_anim_id = m_idle_anim_id;
+                        } else if (current_label_str == "dead") {
+                            m_dead_anim_id = anim::Set::make();
+                            m_current_anim_id = m_dead_anim_id;
+                        }
+                        if (m_current_anim_id != -1) {
+                            anim::Set::at(m_current_anim_id)->texture_size = sprite::Set::at(m_sprite_id)->texture_size(),
+                                anim::Set::at(m_current_anim_id)->source = { 0,
+                                                                             source_y,
+                                                                             sprite::Set::at(m_sprite_id)->source_rect.w,
+                                                                             sprite::Set::at(m_sprite_id)->source_rect.h };
+                            anim::Set::at(m_current_anim_id)->speed = speed;
+                            anim::Set::at(m_current_anim_id)->loops = num_loops;
+                        }
+
+                    }
+
+
+                }
+            }
+        }
+    }
+
+    
+
+
+
+
+
+
+
+
+
+
+
+    
 }

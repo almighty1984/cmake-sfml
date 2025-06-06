@@ -9,7 +9,7 @@ import types;
 
 export class Config {
     static inline u8          s_scale      = 1;
-    static inline state::Type s_state_type = state::Type::Game;
+    static inline state::Type s_state_type = state::Type::game;
 
 public:
     static u8 scale() { return s_scale; }

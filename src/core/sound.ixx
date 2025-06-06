@@ -22,6 +22,7 @@ class Sound {
     std::filesystem::path m_path;
     Vec2f m_position;
 public:
+    i32 id = -1;
     //Sound() {}
     Sound(const std::filesystem::path& path) {
         load(path);
@@ -54,15 +55,52 @@ public:
 
 export namespace sound {
     class Set {
-        static inline std::vector<std::unique_ptr<Sound>> s_sounds;        
+        //static inline std::vector<std::unique_ptr<Sound>> s_sounds;
+        static inline std::vector<Sound*> s_sounds;
+        static inline std::vector<i32>    s_unused_ids;
     public:
-        static std::unique_ptr<Sound>&  at(size_t i) { return s_sounds.at(i); }
+        //static std::unique_ptr<Sound>&  at(size_t i) { return s_sounds.at(i); }
+        static Sound*  at(size_t i) { return s_sounds.at(i); }
         static bool    is_valid(size_t i) { return (i >= 0 && i < s_sounds.size() && s_sounds.at(i)) ? true : false; }
         static size_t  size() { return s_sounds.size(); }
 
         static i32c make(const std::filesystem::path& path) {
-            s_sounds.push_back(std::make_unique<Sound>(path));
-            return s_sounds.size() - 1;
-        }        
+            //s_sounds.push_back(std::make_unique<Sound>(path));
+            //return s_sounds.size() - 1;
+
+            Sound* sound = new Sound(path);
+            if (!s_unused_ids.empty()) {
+                sound->id = s_unused_ids.back();
+                s_unused_ids.pop_back();
+                if (!s_sounds.empty() && sound->id >= 0 && sound->id < s_sounds.size() && s_sounds.at(sound->id)) {
+                    delete s_sounds.at(sound->id);
+                    s_sounds.at(sound->id) = nullptr;
+                }
+            } else {
+                sound->id = s_sounds.size();
+                s_sounds.push_back(nullptr);
+            }
+            s_sounds.at(sound->id) = sound;
+            return sound->id;
+        }
+        static bool erase(size_t i) {
+            if (!(i < s_sounds.size()) || !s_sounds.at(i)) {
+                Console::log("sound::Set::erase ", i, " can't do it\n");
+                return false;
+            }
+            Console::log("sound::Set::erase ", i, "\n");
+            s_sounds.at(i)->stop();
+            delete s_sounds.at(i);
+            s_sounds.at(i) = nullptr;
+            s_unused_ids.push_back(i);
+            return true;
+        }
+        static void clear() {
+            for (i32 i = 0; i < s_sounds.size(); ++i) {
+                erase(i);
+            }
+            s_sounds.clear();
+            s_unused_ids.clear();
+        }
     };
 }

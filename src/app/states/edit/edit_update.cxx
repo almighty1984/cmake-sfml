@@ -23,6 +23,8 @@ namespace state {
         }
         m_timer = 0;
 
+        //Console::log("state::Edit::update level path: ", m_level_path, "\n");
+
         /*for (size_t i = 0; i < m_text_bar.get_sprite_ids().size(); ++i) {
             Console::log(m_text_bar.get_sprite_ids().at(i), " ");
             if (i == m_text_bar.get_sprite_ids().size() - 1) {
@@ -135,7 +137,7 @@ namespace state {
             return;
         }
         
-        m_is_mouse_on_menu_down = m_is_showing_menu_down && (m_mouse_tile_position.x > view.w - 48.0f || m_mouse_tile_position.y > view.h - 32.0f) ? true : false;
+        m_is_mouse_on_menu_down = m_is_showing_menu_down && (m_mouse_tile_position.x > view().w - 48.0f || m_mouse_tile_position.y > view().h - 32.0f) ? true : false;
         if (m_is_mouse_on_menu_down) {
             if (m_mouse_sprite_ids.size() != 1) {
                 init_brush(1);
@@ -539,22 +541,22 @@ namespace state {
                     deselect_all_on_tile_set();
                     return;
                 }
-            }            
+            }
         }
         if (input::Set::at(m_input_id)->is_pressed(input::Key::f1)) {
             input::Set::at(m_input_id)->release(input::Key::f1);
-            set_next(Type::Game);
+            next(Type::game);
         }
 
         if (input::Set::at(m_input_id)->is_pressed(input::Key::grave)) {
             input::Set::at(m_input_id)->release(input::Key::grave);
-            if (view == Rectf{ 0.0f, 0.0f, 480.0f, 270.0f }) {
-                view = { 0.0f, 0.0f, 320.0f, 180.0f };                
+            if (view() == Rectf{0.0f, 0.0f, 480.0f, 270.0f}) {
+                view({ 0.0f, 0.0f, 320.0f, 180.0f });
             } else {
-                view = { 0.0f, 0.0f, 480.0f, 270.0f };                
+                view({ 0.0f, 0.0f, 480.0f, 270.0f });
             }
-            transform::Set::at(m_menu_right_transform_id)->position.x = view.w - sprite::Set::at(m_menu_right_bg_sprite_id)->source_rect.w;
-            transform::Set::at(m_menu_down_transform_id)->position.y = view.h + 16.0f - std::fmodf(view.h, 16.0f) - sprite::Set::at(m_menu_down_bg_sprite_id)->source_rect.h;
+            transform::Set::at(m_menu_right_transform_id)->position.x = view().w - sprite::Set::at(m_menu_right_bg_sprite_id)->source_rect.w;
+            transform::Set::at(m_menu_down_transform_id)->position.y = view().h + 16.0f - std::fmodf(view().h, 16.0f) - sprite::Set::at(m_menu_down_bg_sprite_id)->source_rect.h;
         }
 
     }

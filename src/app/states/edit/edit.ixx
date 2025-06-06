@@ -73,7 +73,11 @@ export namespace state {
 
     class Edit : public State {
     public:
-        Edit(u16c window_w, u16c window_h);
+        Edit(u16c window_w, u16c window_h, const std::filesystem::path& path);
+        /*Edit(u16c window_w, u16c window_h, const std::filesystem::path& path) {
+            Edit(window_w, window_h);
+            load_level_sprites(path);
+        }*/
         ~Edit();
 
     private:

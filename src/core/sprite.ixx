@@ -15,24 +15,33 @@ import texture;
 import transform;
 import types;
 
-export namespace sprite {    
+export namespace sprite {
     struct Data {
-        u8 tile_set = 0;
-        u8 layer = 0;
-        u16 source_y = 0, source_x = 0;
-        u16 y = 0, x = 0;
+        u8 tile_set  = 0,
+           layer     = 0;
+        u16 source_y = 0, source_x = 0,
+            y        = 0, x        = 0;
     };
     enum class Type {
         null,
-        clip, clip_D, clip_D_L, clip_D_R, clip_L, clip_R, clip_ledge, clip_ledge_L, clip_ledge_R, clip_U,
-        level_start,
+        arch_L_1x1, arch_R_1x1, arch_L_2x1_0, arch_L_2x1_1, arch_R_2x1_0, arch_R_2x1_1,
+        clip, clip_duck, clip_D, clip_D_L, clip_D_R, clip_L, clip_R, clip_ledge, clip_ledge_L, clip_ledge_R, clip_U,
+        level_center, level_L_0, level_R_0,
         slope_L_1x1, slope_R_1x1, slope_L_2x1_0, slope_L_2x1_1, slope_R_2x1_0, slope_R_2x1_1, slope_U,
+        swing,
         player
     };
     using Typec = const Type;
-    Type type_from_string(const std::string_view& s) {
+    Type from_string(const std::string_view& s) {
         //Console::log("sprite::type_from_string: ", s, "\n");
-        if      (s == "clip")          return Type::clip;        
+        if      (s == "arch_L_1x1")    return Type::arch_L_1x1;
+        else if (s == "arch_R_1x1")    return Type::arch_R_1x1;
+        else if (s == "arch_L_2x1_0")  return Type::arch_L_2x1_0;
+        else if (s == "arch_L_2x1_1")  return Type::arch_L_2x1_1;
+        else if (s == "arch_R_2x1_0")  return Type::arch_R_2x1_0;
+        else if (s == "arch_R_2x1_1")  return Type::arch_R_2x1_1;
+        else if (s == "clip")          return Type::clip;
+        else if (s == "clip_duck")     return Type::clip_duck;
         else if (s == "clip_L")        return Type::clip_L;
         else if (s == "clip_R")        return Type::clip_R;
         else if (s == "clip_D")        return Type::clip_D;
@@ -42,7 +51,9 @@ export namespace sprite {
         else if (s == "clip_ledge_L")  return Type::clip_ledge_L;
         else if (s == "clip_ledge_R")  return Type::clip_ledge_R;
         else if (s == "clip_U")        return Type::clip_U;
-        else if (s == "level_start")   return Type::level_start;
+        else if (s == "level_center")  return Type::level_center;
+        else if (s == "level_L_0")     return Type::level_L_0;
+        else if (s == "level_R_0")     return Type::level_R_0;
         else if (s == "slope_L_1x1")   return Type::slope_L_1x1;
         else if (s == "slope_L_2x1_0") return Type::slope_L_2x1_0;
         else if (s == "slope_L_2x1_1") return Type::slope_L_2x1_1;
@@ -50,12 +61,20 @@ export namespace sprite {
         else if (s == "slope_R_2x1_0") return Type::slope_R_2x1_0;
         else if (s == "slope_R_2x1_1") return Type::slope_R_2x1_1;
         else if (s == "slope_U")       return Type::slope_U;
+        else if (s == "swing")         return Type::swing;
         else if (s == "player")        return Type::player;
         return Type::null;
     }
-    std::string_view type_to_string(const Type type) {
+    std::string_view to_string(const Type type) {
         switch (type) {
+        case Type::arch_L_1x1:    return "arch_L_1x1";
+        case Type::arch_R_1x1:    return "arch_R_1x1";
+        case Type::arch_L_2x1_0:  return "arch_L_2x1_0";
+        case Type::arch_L_2x1_1:  return "arch_L_2x1_1";
+        case Type::arch_R_2x1_0:  return "arch_R_2x1_0";
+        case Type::arch_R_2x1_1:  return "arch_R_2x1_1";
         case Type::clip:          return "clip";
+        case Type::clip_duck:     return "clip_duck";
         case Type::clip_L:        return "clip_L";
         case Type::clip_R:        return "clip_R";
         case Type::clip_D:        return "clip_D";
@@ -65,7 +84,9 @@ export namespace sprite {
         case Type::clip_ledge_L:  return "clip_ledge_L";
         case Type::clip_ledge_R:  return "clip_ledge_R";
         case Type::clip_U:        return "clip_U";
-        case Type::level_start:   return "level_start";
+        case Type::level_center:  return "level_center";
+        case Type::level_L_0:     return "level_L_0";
+        case Type::level_R_0:     return "level_R_0";
         case Type::slope_L_1x1:   return "slope_L_1x1";
         case Type::slope_R_1x1:   return "slope_R_1x1";
         case Type::slope_L_2x1_0: return "slope_L_2x1_0";
@@ -73,6 +94,7 @@ export namespace sprite {
         case Type::slope_R_2x1_0: return "slope_R_2x1_0";
         case Type::slope_R_2x1_1: return "slope_R_2x1_1";
         case Type::slope_U:       return "slope_U";
+        case Type::swing:         return "swing";
         case Type::player:        return "player";
         default:                  return "";
         }
@@ -81,6 +103,7 @@ export namespace sprite {
         Type type;
         Rectf rect;
         Vec2f velocity;
+        i32 collider_id;
     };
     using Infoc = const Info;
 
@@ -91,7 +114,8 @@ export namespace sprite {
 
         u8    layer        = 0,
               tile_set     = 0;
-        bool  is_hidden    = false,
+        bool  is_debug     = false,
+              is_hidden    = false,
               is_leftward  = false,
               is_upended   = false;
         Vec2f offset,
@@ -112,7 +136,7 @@ export namespace sprite {
         Object(std::filesystem::path path) : //m_transformed_position(),
             id(-1), transform_id(-1),
             layer(0), tile_set(0),
-            is_hidden(false), is_leftward(false), is_upended(false),
+            is_debug(false), is_hidden(false), is_leftward(false), is_upended(false),
             offset(), //prev_position(-1.0f, -1.0f),
             start(), level(), origin(), center(),
             color(), start_color(),
@@ -131,6 +155,7 @@ export namespace sprite {
             transform_id = other.transform_id;
             layer = other.layer;
             tile_set = other.tile_set;
+            is_debug = other.is_debug;
             is_hidden = other.is_hidden;
             is_leftward = other.is_leftward;
             is_upended = other.is_upended;
@@ -154,15 +179,24 @@ export namespace sprite {
             return { sf_sprite.getTexture().getSize().x, sf_sprite.getTexture().getSize().y };
         }
 
+        void set_origin(Vec2fc o) {
+            origin = o;
+            sf_sprite.setOrigin(sf::Vector2f(o.x, o.y));
+        }
         void set_rotation(f32 r) {
             if (r > 360.0f) r -= 360.0f;
             rotation = r + start_rotation;
             if (rotation > 360.0f) rotation -= 360.0f;
+            
             sf_sprite.setRotation(sf::degrees(rotation));
+        }
+        f32c radians() const {
+            return sf::degrees(rotation).asRadians();            
         }
         void rotate(f32c r) {
             rotation += r;
             if (rotation > 360.0f) rotation -= 360.0f;
+            else if (rotation < -360.0f) rotation += 360.0f;
             sf_sprite.setRotation(sf_sprite.getRotation() + sf::degrees(r));
         }
         bool texture(const std::filesystem::path path) {
@@ -183,23 +217,24 @@ export namespace sprite {
             //position = transform::Set::at(transform_id)->position;
 
             texture_rect(source_rect);
+            //sf_sprite.setOrigin({ origin.x * Config::scale(), origin.y * Config::scale() });
             sf_sprite.setOrigin({ origin.x, origin.y });
 
 
-            f32 flip_x = 0.0f;
-            if (is_leftward) {
-                flip_x = source_rect.w * 1.0f;
-            }
+            //f32c flip_x = is_leftward ? source_rect.w * 1.0f : 0.0f;
+            //f32c flip_y = is_upended  ? source_rect.h * 1.0f : 0.0f;
+
             
-            sf_sprite.setScale({ (is_leftward ? -1.0f : 1.0f) * Config::scale(), (f32)Config::scale() });
+            sf_sprite.setScale({ (is_leftward ? -1.0f : 1.0f) * Config::scale(), (is_upended ? -1.0f : 1.0f) * Config::scale() });
+
 
             //if (position != prev_position) {
                 //m_transformed_position = position + transform()->position;
                 //prev_position = position;
                 //center = { position.x + source_rect.w / 2.0f, position.y + source_rect.h / 2.0f };
                 //Console::log("sprite::Object::update position: ", prev_position.x, " ", transform()->position.x, "  ", prev_position.y, " ", transform()->position.y, "\n");        
-            sf_sprite.setPosition({ (transform::Set::at(transform_id)->position.x + offset.x + flip_x) * Config::scale(),
-                                    (transform::Set::at(transform_id)->position.y + offset.y) * Config::scale() });
+            sf_sprite.setPosition({ (transform::Set::at(transform_id)->position.x + offset.x + origin.x) * Config::scale(),
+                                    (transform::Set::at(transform_id)->position.y + offset.y + origin.y) * Config::scale() });
             //}
         }
         /* Vec2f position() {
@@ -262,7 +297,7 @@ export namespace sprite {
             //}
             //Console::log("\n");
             return true;
-        }        
+        }
         static void update() {
             for (auto& i : m_objects) {
                 if (i) i->update();

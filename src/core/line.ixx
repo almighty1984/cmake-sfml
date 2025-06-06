@@ -28,6 +28,7 @@ export namespace line {
         f32 slope = 0.0f;
 
         bool is_debug = false;
+        bool is_hidden = false;
 
         Object(Vec2fc in_start, Vec2fc in_end) {
             set(in_start, in_end);
