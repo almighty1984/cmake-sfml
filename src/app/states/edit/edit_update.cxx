@@ -17,39 +17,33 @@ namespace state {
             //Console::log("not all valid\n");
             return;
         }
-        if (m_timer < 1) {
+        /*if (m_timer < 1) {
             m_timer += 1;
             return;
         }
-        m_timer = 0;
+        m_timer = 0;*/
 
-        //Console::log("state::Edit::update level path: ", m_level_path, "\n");
-
-        /*for (size_t i = 0; i < m_text_bar.get_sprite_ids().size(); ++i) {
-            Console::log(m_text_bar.get_sprite_ids().at(i), " ");
-            if (i == m_text_bar.get_sprite_ids().size() - 1) {
-                Console::log("\n");
+        if (input::Set::at(m_input_id)->is_pressed(input::Key::grave)) {
+            input::Set::at(m_input_id)->release(input::Key::grave);
+            if (view() == Rectf{ 0.0f, 0.0f, 480.0f, 270.0f }) {
+                view({ 0.0f, 0.0f, 320.0f, 180.0f });
+            } else {
+                view({ 0.0f, 0.0f, 480.0f, 270.0f });
             }
-        }*/
-        /*for (size_t i = 0; i < sprite::Set::size(); ++i) {
-            Console::log(sprite::Set::at(i)->id, " ");
-            if (i > 10) {
-                Console::log("\n");
-                break;
-            }
-        }*/
-
-        //Console::log("source: ", sprite::Set::at(1)->source_rect.x, " ", sprite::Set::at(1)->source_rect.y, "\n");
-        //Console::log("texture: ", sprite::Set::at(1)->texture_path, "\n");
-                
-        //sprite::Set::at(1)->is_hidden = true;
-
-        /*Console::log("state::Edit::update mouse sprite ids: ");
-        for (const auto& sprite_id : m_mouse_sprite_ids) {
-            Console::log(sprite_id, " ");
+            move_tile_set({ 0.0f, 0.0f });
         }
-        Console::log("\n");*/
-        
+        transform::Set::at(m_menu_right_transform_id)->position.x = view().w - sprite::Set::at(m_menu_right_bg_sprite_id)->source_rect.w;
+        transform::Set::at(m_menu_down_transform_id)->position.y = view().h + 16.0f - std::fmodf(view().h, 16.0f) - sprite::Set::at(m_menu_down_bg_sprite_id)->source_rect.h;
+
+        if (input::Set::at(m_input_id)->is_pressed(input::Key::enter)) {
+            input::Set::at(m_input_id)->release(input::Key::enter);
+            for (auto& i : m_grid_sprite_ids) {
+                if (sprite::Set::at(i)) {
+                    sprite::Set::at(i)->is_hidden = !sprite::Set::at(i)->is_hidden;
+                }                
+            }
+        }
+
         if (!m_is_moving && input::Set::at(m_input_id)->is_pressed(input::Key::ctrl) && input::Set::at(m_input_id)->is_pressed(input::Key::z)) {
             input::Set::at(m_input_id)->release(input::Key::z);
             undo_last_act();
@@ -68,7 +62,7 @@ namespace state {
                 remove_level(m_menu_up_lists[m_menu_up_labels[0]].items.at(m_is_asked_to_remove_level.second).get()->get_text());
                 m_menu_up_lists[m_menu_up_labels[0]].items.at(m_is_asked_to_remove_level.second).reset();
                 m_menu_up_lists[m_menu_up_labels[0]].items.clear();
-                load_menu_up_list(m_menu_up_labels[0], std::filesystem::current_path() / "res" / "levels");
+                load_menu_up_list(m_menu_up_labels[0], std::filesystem::current_path() / "res" / "level");
                 m_is_asked_to_remove_level = { false, 0 };
             } else if (input::Set::at(m_input_id)->is_pressed(input::Key::n)) {
                 input::Set::at(m_input_id)->release(input::Key::n);
@@ -153,7 +147,7 @@ namespace state {
         if (m_time_left_saving > 0) {
             sprite::Set::at(m_save_sprite_id)->source_rect.x = 16;
             --m_time_left_saving;
-            if (m_time_left_saving <= 0) {
+            if (m_time_left_saving == 0) {
                 sprite::Set::at(m_save_sprite_id)->source_rect.x = 0;
             }
         }
@@ -228,19 +222,6 @@ namespace state {
             m_is_showing_menu_down  = !m_is_showing_menu_down;
             m_is_showing_menu_right = !m_is_showing_menu_right;
         }
-        /*transform::Set::at(m_menu_down_transform_id)->position = { 0.0f, 0.0f };
-        transform::Set::at(m_menu_right_transform_id)->position = { 0.0f, 0.0f };
-        if (m_is_showing_menu_down) {
-            Vec2f view_scale = { 320.0f / view.w, 180.0f / view.h };
-            if (view.w == 320.0f) {
-                transform::Set::at(m_menu_down_transform_id)->position = { -32.0f, -32.0f };
-                
-            } else if (view.w == 480.0f) {
-                transform::Set::at(m_menu_down_transform_id)->position = { -16.0f, -16.0f };
-                
-            }
-
-        }*/
 
         m_is_mouse_on_menu_up_bar = !input::Set::at(m_input_id)->is_pressed(input::Key::ctrl) &&
                                     !m_is_showing_tile_set &&
@@ -476,9 +457,8 @@ namespace state {
             input::Set::at(m_input_id)->release(input::Button::middle);
             Vec2fc offset = transform::Set::at(m_mouse_transform_id)->position - transform::Set::at(m_level_transform_id)->position;
             eyedropper_on_level(offset);
-
-            m_is_showing_tile_set ? m_tile_set_brush_size = 1 : m_level_brush_size = 1;
-            init_brush(1);
+            //m_is_showing_tile_set ? m_tile_set_brush_size = 1 : m_level_brush_size = 1;
+            //init_brush(1);
         }
 
         if (input::Set::at(m_input_id)->is_pressed(input::Key::h)) {
@@ -486,7 +466,7 @@ namespace state {
             for (auto& i : m_grid_sprite_ids) {
                 sprite::Set::at(i)->is_hidden = !sprite::Set::at(i)->is_hidden;
             }
-        }        
+        }
 
         if (input::Set::at(m_input_id)->is_pressed(input::Key::del)) {
             input::Set::at(m_input_id)->release(input::Key::del);
@@ -545,19 +525,7 @@ namespace state {
         }
         if (input::Set::at(m_input_id)->is_pressed(input::Key::f1)) {
             input::Set::at(m_input_id)->release(input::Key::f1);
-            next(Type::game);
+            next_state(Type::game);
         }
-
-        if (input::Set::at(m_input_id)->is_pressed(input::Key::grave)) {
-            input::Set::at(m_input_id)->release(input::Key::grave);
-            if (view() == Rectf{0.0f, 0.0f, 480.0f, 270.0f}) {
-                view({ 0.0f, 0.0f, 320.0f, 180.0f });
-            } else {
-                view({ 0.0f, 0.0f, 480.0f, 270.0f });
-            }
-            transform::Set::at(m_menu_right_transform_id)->position.x = view().w - sprite::Set::at(m_menu_right_bg_sprite_id)->source_rect.w;
-            transform::Set::at(m_menu_down_transform_id)->position.y = view().h + 16.0f - std::fmodf(view().h, 16.0f) - sprite::Set::at(m_menu_down_bg_sprite_id)->source_rect.h;
-        }
-
     }
 }

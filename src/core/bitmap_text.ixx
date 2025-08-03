@@ -23,7 +23,7 @@ public:
     
     i32    transform_id = -1;
 
-    std::filesystem::path texture_path = "res/fonts/font_8_gray.png";
+    std::filesystem::path texture_path = "res/texture/font_8_gray.png";
 
     ~BitmapText() {
         clear_text();

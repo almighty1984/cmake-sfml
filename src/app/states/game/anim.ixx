@@ -24,6 +24,11 @@ export namespace anim {
 
         u16 first_frame = 0;
 
+        u16c num_frames()    const { return texture_size.x / source.w; }
+        u16c current_frame() const { return source.x / source.w;       }
+
+        bool is_last_frame() const { return current_frame() == num_frames() - 1; }
+
         void update() {
             timer += speed;
             if (timer < 1.0f) {
@@ -87,9 +92,8 @@ export namespace anim {
             return true;
         }
         static void update() {
-            for (auto& i : m_objects) {
-                if (!i) continue;
-                i->update();
+            for (const auto& i : m_objects) {
+                if (i) i->update();
             }
         }
         static void clear() {

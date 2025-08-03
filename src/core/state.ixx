@@ -26,7 +26,7 @@ export namespace state {
         default:         return {};     break; }
     }
     
-    std::filesystem::path tile_set_texture_path(u8c tile_set_number) { return "res/textures/set_" + std::to_string((int)tile_set_number) + ".png"; }
+    std::filesystem::path tile_set_texture_path(u8c tile_set_number) { return "res/texture/set_" + std::to_string((int)tile_set_number) + ".png"; }
 
     class State {
     private:
@@ -44,7 +44,6 @@ export namespace state {
         bool m_is_drawing_debug_lines = false;
         bool m_is_to_write_save = false;
     public:
-
         std::set<u8>& get_visible_layers() { return m_visible_layers; }
         bool add_visible_layer(u8c layer) {
             if (layer > NUM_VISIBLE_LAYERS) return false;
@@ -63,8 +62,8 @@ export namespace state {
         bool is_to_write_save()       const { return m_is_to_write_save; }       void is_to_write_save(bool is) { m_is_to_write_save = is; }
         bool is_to_change()           const { return m_next_state != m_current_state; }
         
-        state::Type next()    const { return m_next_state;    } void next(state::Type t)    { m_next_state = t;                   }
-        state::Type current() const { return m_current_state; } void current(state::Type t) { m_current_state = m_next_state = t; }
+        state::Type next_state()    const { return m_next_state;    } void next_state(state::Type t)    { m_next_state = t;                   }
+        state::Type current_state() const { return m_current_state; } void current_state(state::Type t) { m_current_state = m_next_state = t; }
 
 
         Rectfc view() const { return m_view; } void view(Rectfc v) { m_view = v; }
@@ -73,10 +72,11 @@ export namespace state {
 
         start::Info start_info() { return m_start_info; }   void start_info(start::Info i) { m_start_info = i; }
 
-        //sprite::Type next_level_start() const { return m_next_level_start; }  void next_level_start(sprite::Type t) { m_next_level_start = t; }
+        //entity::Type next_level_start() const { return m_next_level_start; }  void next_level_start(entity::Type t) { m_next_level_start = t; }
         virtual std::filesystem::path level_path_to_save() { return {}; }
 
         virtual ~State() {}
         virtual void update() {}
+        virtual void update_unlocked() {}
     };
 }

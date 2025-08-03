@@ -15,7 +15,7 @@ namespace state {
         for (u8 i = 0; i < NUM_VISIBLE_LAYERS; ++i) {
             add_visible_layer(i);
         }
-        current(state::Type::edit);
+        current_state(state::Type::edit);
 
 
         //load_types_from_text_file("edit.cfg");
@@ -31,13 +31,13 @@ namespace state {
 
         m_selection_on_tile_set_transform_id = transform::Set::make();
         transform::Set::at(m_selection_on_tile_set_transform_id)->position = { 0.0f, 512.0f };
-        //m_selection_on_tile_set_sprite_ids.push_back(sprite::Set::make("res/textures/tile_selection.png"));
+        //m_selection_on_tile_set_sprite_ids.push_back(sprite::Set::make("res/texture/tile_selection.png"));
         //sprite::Set::at(m_selection_on_tile_set_sprite_ids.back())->layer = SELECTION_ON_TILE_SET_LAYER;
         //sprite::Set::at(m_selection_on_tile_set_sprite_ids.back())->transform_id = m_selection_on_tile_set_transform_id;
 
         m_tile_set_bg_transform_id = transform::Set::make();
         transform::Set::at(m_tile_set_bg_transform_id)->position = { 0.0f, 512.0f };
-        m_tile_set_bg_sprite_id = sprite::Set::make("res/textures/editor_tile_set_bg.png");
+        m_tile_set_bg_sprite_id = sprite::Set::make("res/texture/editor_tile_set_bg.png");
         sprite::Set::at(m_tile_set_bg_sprite_id)->source_rect = { 0, 0, 512, 512 };
         sprite::Set::at(m_tile_set_bg_sprite_id)->layer = TILE_SET_BG_LAYER;
         sprite::Set::at(m_tile_set_bg_sprite_id)->transform_id = m_tile_set_bg_transform_id;
@@ -48,6 +48,7 @@ namespace state {
         sprite::Set::at(m_tile_set_sprite_id)->source_rect = { 0, 0, 512, 512 };
         sprite::Set::at(m_tile_set_sprite_id)->layer = TILE_SET_LAYER;
         sprite::Set::at(m_tile_set_sprite_id)->transform_id = m_tile_set_transform_id;
+        sprite::Set::at(m_tile_set_sprite_id)->is_hidden = true;
 
         m_menu_up_transform_id = transform::Set::make();
         transform::Set::at(m_menu_up_transform_id)->position = { 0.0f, -8.0f };
@@ -56,7 +57,7 @@ namespace state {
         add_to_menu_up_bar(m_menu_up_labels[1]);
 
         m_menu_up_lists[m_menu_up_labels[0]].transform_id = transform::Set::make();        
-        m_menu_up_lists[m_menu_up_labels[0]].bg_sprite_id = sprite::Set::make("res/textures/editor_menu_bg.png");        
+        m_menu_up_lists[m_menu_up_labels[0]].bg_sprite_id = sprite::Set::make("res/texture/editor_menu_bg.png");        
 
         Console::log("state::Edit::Edit bg_h: ", m_menu_up_lists[m_menu_up_labels[0]].bg_h, "\n");
 
@@ -64,16 +65,16 @@ namespace state {
         sprite::Set::at(m_menu_up_lists[m_menu_up_labels[0]].bg_sprite_id)->transform_id = m_menu_up_lists[m_menu_up_labels[0]].transform_id;
 
         m_menu_up_lists[m_menu_up_labels[1]].transform_id = transform::Set::make();
-        m_menu_up_lists[m_menu_up_labels[1]].bg_sprite_id = sprite::Set::make("res/textures/editor_menu_bg.png");        
+        m_menu_up_lists[m_menu_up_labels[1]].bg_sprite_id = sprite::Set::make("res/texture/editor_menu_bg.png");        
         sprite::Set::at(m_menu_up_lists[m_menu_up_labels[1]].bg_sprite_id)->layer = MENU_LAYER;
         sprite::Set::at(m_menu_up_lists[m_menu_up_labels[1]].bg_sprite_id)->transform_id = m_menu_up_lists[m_menu_up_labels[1]].transform_id;
 
-        load_menu_up_list(m_menu_up_labels[0], std::filesystem::current_path() / "res" / "levels");
-        load_menu_up_list(m_menu_up_labels[1], std::filesystem::current_path() / "res" / "prefabs");                
+        load_menu_up_list(m_menu_up_labels[0], std::filesystem::current_path() / "res" / "level");
+        load_menu_up_list(m_menu_up_labels[1], std::filesystem::current_path() / "res" / "prefab");                
 
         m_menu_down_transform_id = transform::Set::make();
         transform::Set::at(m_menu_down_transform_id)->position = { 0.0f, 160.0f };
-        m_menu_down_bg_sprite_id = sprite::Set::make("res/textures/editor_menu_bg.png");
+        m_menu_down_bg_sprite_id = sprite::Set::make("res/texture/editor_menu_bg.png");
         sprite::Set::at(m_menu_down_bg_sprite_id)->offset = { 0.0f, 0.0f };
         sprite::Set::at(m_menu_down_bg_sprite_id)->source_rect = { 0, 0, 512, 32 };
         sprite::Set::at(m_menu_down_bg_sprite_id)->layer = MENU_LAYER;
@@ -81,32 +82,32 @@ namespace state {
 
         m_menu_right_transform_id = transform::Set::make();
         transform::Set::at(m_menu_right_transform_id)->position = { 288.0f, 0.0f };
-        m_menu_right_bg_sprite_id = sprite::Set::make("res/textures/editor_menu_bg.png");
+        m_menu_right_bg_sprite_id = sprite::Set::make("res/texture/editor_menu_bg.png");
         sprite::Set::at(m_menu_right_bg_sprite_id)->offset = { 0, 0 };
         sprite::Set::at(m_menu_right_bg_sprite_id)->source_rect = { 0, 0, 32, 512 };
         sprite::Set::at(m_menu_right_bg_sprite_id)->layer = MENU_LAYER;
         sprite::Set::at(m_menu_right_bg_sprite_id)->transform_id = m_menu_right_transform_id;
 
-        m_save_sprite_id = sprite::Set::make("res/textures/editor_save.png");
+        m_save_sprite_id = sprite::Set::make("res/texture/editor_save.png");
         sprite::Set::at(m_save_sprite_id)->offset = { 272.0f, 0.0f };
         sprite::Set::at(m_save_sprite_id)->layer = MENU_LAYER;
         sprite::Set::at(m_save_sprite_id)->transform_id = m_menu_down_transform_id;
 
-        m_active_layer_sprite_id = sprite::Set::make("res/textures/editor_layer_active.png");
+        m_active_layer_sprite_id = sprite::Set::make("res/texture/editor_layer_active.png");
         sprite::Set::at(m_active_layer_sprite_id)->offset = { 0.0f, 0.0f };
         sprite::Set::at(m_active_layer_sprite_id)->source_rect = { 0, 0, 16, 16 };
         sprite::Set::at(m_active_layer_sprite_id)->layer = MENU_LAYER;
         sprite::Set::at(m_active_layer_sprite_id)->transform_id = m_menu_right_transform_id;
 
         for (u8 i = 0; i < 10; ++i) {
-            m_is_hidden_layer_sprite_ids.push_back(sprite::Set::make("res/textures/editor_layer_hidden.png"));
+            m_is_hidden_layer_sprite_ids.push_back(sprite::Set::make("res/texture/editor_layer_hidden.png"));
             sprite::Set::at(m_is_hidden_layer_sprite_ids.back())->offset = { 16.0f, i * 16.0f };
             sprite::Set::at(m_is_hidden_layer_sprite_ids.back())->source_rect = { 0, 0, 16, 16 };
             sprite::Set::at(m_is_hidden_layer_sprite_ids.back())->layer = MENU_LAYER;
             sprite::Set::at(m_is_hidden_layer_sprite_ids.back())->transform_id = m_menu_right_transform_id;
         }
 
-        m_text_bar_bg_sprite_id = sprite::Set::make("res/textures/editor_text_bar_bg.png");
+        m_text_bar_bg_sprite_id = sprite::Set::make("res/texture/editor_text_bar_bg.png");
         sprite::Set::at(m_text_bar_bg_sprite_id)->offset = { 0.0f, 0.0f };
         sprite::Set::at(m_text_bar_bg_sprite_id)->source_rect = { 0, 0, 272, 16 };
         sprite::Set::at(m_text_bar_bg_sprite_id)->layer = MENU_LAYER;
@@ -115,21 +116,21 @@ namespace state {
         m_text_bar.transform_id = m_menu_down_transform_id;
         m_text_bar.set_offset({ 0.0f, 4.0f });
         m_text_bar.layer = MENU_LAYER;
-        m_text_bar.texture_path = "res/fonts/font_8_black.png";        
+        m_text_bar.texture_path = "res/texture/font_8_black.png";        
 
-        m_current_tile_set_bg_sprite_id = sprite::Set::make("res/textures/editor_current_tile_set_bg.png");
-        sprite::Set::at(m_current_tile_set_bg_sprite_id)->offset = { 0.0f, 0.0f };
-        sprite::Set::at(m_current_tile_set_bg_sprite_id)->source_rect = { 0, 0, 32, 16 };
-        sprite::Set::at(m_current_tile_set_bg_sprite_id)->layer = MENU_LAYER;
-        sprite::Set::at(m_current_tile_set_bg_sprite_id)->transform_id = m_menu_right_transform_id;
-        sprite::Set::at(m_current_tile_set_bg_sprite_id)->is_hidden = true;
+        m_text_current_tile_set_bg_sprite_id = sprite::Set::make("res/texture/editor_text_current_tile_set_bg.png");
+        sprite::Set::at(m_text_current_tile_set_bg_sprite_id)->offset = { 0.0f, 0.0f };
+        sprite::Set::at(m_text_current_tile_set_bg_sprite_id)->source_rect = { 0, 0, 32, 16 };
+        sprite::Set::at(m_text_current_tile_set_bg_sprite_id)->layer = MENU_LAYER;
+        sprite::Set::at(m_text_current_tile_set_bg_sprite_id)->transform_id = m_menu_right_transform_id;
+        sprite::Set::at(m_text_current_tile_set_bg_sprite_id)->is_hidden = true;
 
-        m_current_tile_set.transform_id = m_menu_right_transform_id;
-        m_current_tile_set.layer = MENU_LAYER;
-        m_current_tile_set.texture_path = "res/fonts/font_8_black.png";
-        m_current_tile_set.set_is_hidden(true);
-        m_current_tile_set.set_offset( {4.0f, 4.0f} );
-        m_current_tile_set.set_text("0");
+        m_text_current_tile_set.transform_id = m_menu_right_transform_id;
+        m_text_current_tile_set.layer = MENU_LAYER;
+        m_text_current_tile_set.texture_path = "res/texture/font_8_black.png";
+        m_text_current_tile_set.set_is_hidden(true);
+        m_text_current_tile_set.set_offset( {4.0f, 4.0f} );
+        m_text_current_tile_set.set_text("0");
 
         m_info_message.transform_id = m_menu_up_transform_id;
         m_info_message.set_is_hidden(true);
@@ -142,7 +143,7 @@ namespace state {
         add_grid_at_offset({ 0.0f, 0.0f });
 
 
-        m_position_on_grid_map_sprite_id = sprite::Set::make("res/textures/tile_yellow.png");
+        m_position_on_grid_map_sprite_id = sprite::Set::make("res/texture/tile_yellow.png");
         sprite::Set::at(m_position_on_grid_map_sprite_id)->source_rect = { 0, 0, 1, 1 };
         sprite::Set::at(m_position_on_grid_map_sprite_id)->offset = Vec2f{ 7.0f, 7.0f };
         sprite::Set::at(m_position_on_grid_map_sprite_id)->transform_id = m_grid_map_transform_id;
@@ -190,7 +191,7 @@ namespace state {
             sprite::Set::is_valid(m_tile_set_bg_sprite_id)                 &&
             sprite::Set::is_valid(m_active_layer_sprite_id)                &&
             sprite::Set::is_valid(m_text_bar_bg_sprite_id)                 &&
-            sprite::Set::is_valid(m_current_tile_set_bg_sprite_id)) {            
+            sprite::Set::is_valid(m_text_current_tile_set_bg_sprite_id)) {            
         } else {
             return false;
         }        

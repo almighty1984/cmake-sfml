@@ -85,10 +85,10 @@ export namespace sound {
         }
         static bool erase(size_t i) {
             if (!(i < s_sounds.size()) || !s_sounds.at(i)) {
-                Console::log("sound::Set::erase ", i, " can't do it\n");
+                Console::log("sound::Set::erase ", i, " can't do it!\n");
                 return false;
             }
-            Console::log("sound::Set::erase ", i, "\n");
+            //Console::log("sound::Set::erase ", i, "\n");
             s_sounds.at(i)->stop();
             delete s_sounds.at(i);
             s_sounds.at(i) = nullptr;

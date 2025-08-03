@@ -87,13 +87,23 @@ namespace state {
         m_selection_on_level_sprite_ids.clear();
     } 
     
-    undo::Act Edit::place_sprite_on_level(u8c layer, u8c tile_set, Rectic source_rect, Vec2fc offset) {
+    undo::Act Edit::place_sprite_on_level(u8c layer, u8c tile_set, Rectic source_rect, Vec2fc offset) {        
+        if (tile_set == 255 && m_selection_on_tile_set_sprite_ids.size() == 1) {
+            Vec2fc tile_offset = { source_rect.x / 16.0f, source_rect.y / 16.0f };
+            m_tile_number = std::fmodf(tile_offset.x, 32.0f) + tile_offset.y * 32.0f;
+            const std::string type_str = m_types.at(entity::Info{ 255, m_tile_number });
+            Console::log("tile number: ", (int)m_tile_number, " type: ", type_str, "\n");
+        }
+
+        const std::filesystem::path texture_path = "res/texture/set_" + std::to_string((int)tile_set) + ".png";
+
+        // Replace if found
         for (i32 i = 0; i < sprite::Set::size(); ++i) {
             if (!sprite::Set::at(i)) continue;
             if (sprite::Set::at(i)->transform_id == m_level_transform_id &&
                 sprite::Set::at(i)->layer        == layer                &&
                 sprite::Set::at(i)->offset       == offset) {
-                
+                                
                 if (sprite::Set::at(i)->tile_set    == tile_set &&
                     sprite::Set::at(i)->source_rect == source_rect
                     ) {
@@ -105,19 +115,20 @@ namespace state {
                                                 sprite::Set::at(i)->source_rect,
                                                 sprite::Set::at(i)->offset });
 
-                    Console::log("state::Edit::place_sprite_on_level replacing, previous act size: ", m_undo_acts.size(), "\n");
-
-
+                    //Console::log("state::Edit::place_sprite_on_level replacing, previous act size: ", m_undo_acts.size(), "\n");
                     sprite::Set::at(i)->source_rect = source_rect;
                     if (sprite::Set::at(i)->tile_set != tile_set) {
                         sprite::Set::at(i)->tile_set = tile_set;
-                        sprite::Set::at(i)->texture("res/textures/set_" + std::to_string((int)tile_set) + ".png");
+                        sprite::Set::at(i)->texture(texture_path);
                     }
+                    
                     return undo::Act::replaced;
                 }
             }
         }
-        Console::log("state::Edit::place_sprite_on_level_at_offset placing, previous acts size: ", m_undo_acts.size(), "\n");
+
+        // Place new
+        //Console::log("state::Edit::place_sprite_on_level_at_offset placing, previous acts size: ", m_undo_acts.size(), "\n");
         i32c sprite_id = sprite::Set::make(tile_set_texture_path(m_tile_set));
         sprite::Set::at(sprite_id)->id           = sprite_id;
         sprite::Set::at(sprite_id)->transform_id = m_level_transform_id;
@@ -125,7 +136,7 @@ namespace state {
         sprite::Set::at(sprite_id)->tile_set     = tile_set;
         sprite::Set::at(sprite_id)->source_rect  = source_rect;
         sprite::Set::at(sprite_id)->offset       = offset;
-        sprite::Set::at(sprite_id)->texture("res/textures/set_" + std::to_string((int)tile_set) + ".png");
+        sprite::Set::at(sprite_id)->texture(texture_path);
 
         m_undo_info_placed.push_back({ sprite::Set::at(sprite_id)->transform_id,
                                   sprite::Set::at(sprite_id)->layer,
@@ -280,7 +291,7 @@ namespace state {
             sprite::Set::erase(i);
         }
         m_selection_on_tile_set_sprite_ids.clear();
-        m_selection_on_tile_set_sprite_ids.push_back(sprite::Set::make("res/textures/tile_selection.png"));
+        m_selection_on_tile_set_sprite_ids.push_back(sprite::Set::make("res/texture/tile_selection.png"));
         sprite::Set::at(m_selection_on_tile_set_sprite_ids.back())->layer = SELECTION_ON_TILE_SET_LAYER;
         sprite::Set::at(m_selection_on_tile_set_sprite_ids.back())->transform_id = m_selection_on_tile_set_transform_id;
         sprite::Set::at(m_selection_on_tile_set_sprite_ids.back())->offset = { (f32)sprite->source_rect.x, (f32)sprite->source_rect.y };
@@ -386,7 +397,7 @@ namespace state {
         m_undo_info_moved.clear();
         m_undo_acts.clear();
 
-        auto sprite_data = sprite::Set::open(path);
+        auto sprite_data = sprite::Set::load_level(path);
 
         for (auto& i : sprite_data) {
             if (level_sprite_at_offset(i.layer, { (f32)i.x, (f32)i.y }) ) continue;

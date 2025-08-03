@@ -17,16 +17,16 @@ namespace state {
         } else {
             std::string level_path_str;
             if (m_text_bar.get_text().empty()) {
-                std::filesystem::path level_path = std::filesystem::current_path() / "res" / "levels" / "";
+                std::filesystem::path level_path = std::filesystem::current_path() / "res" / "level" / "";
                 level_path_str = level_path.string();
 
                 std::string separator_str;
                 separator_str = (char)std::filesystem::path::preferred_separator;
 
-                size_t res_path_pos = level_path_str.find("res" + separator_str + "levels", 0);
+                size_t res_path_pos = level_path_str.find("res" + separator_str + "level", 0);
 
                 if (res_path_pos == std::string::npos) {
-                    Console::log("state::Edit::init_typing_text_bar res" + separator_str + "levels" + " not found!\n");
+                    Console::log("state::Edit::init_typing_text_bar res" + separator_str + "level" + " not found!\n");
                     return false;
                 }
                 level_path_str.erase(0, res_path_pos);
@@ -57,16 +57,16 @@ namespace state {
             if (type_str.size() > 1 && type_str.back() == '_') {
                 type_str.pop_back();
                 m_text_bar.set_text(type_str);
-                if (m_types.find(tile::Info{ 255,  m_tile_number }) != m_types.end()) {
-                    m_types.at(tile::Info{ 255, m_tile_number }) = type_str;
+                if (m_types.find(entity::Info{ 255,  m_tile_number }) != m_types.end()) {
+                    m_types.at(entity::Info{ 255, m_tile_number }) = type_str;
                 } else {
                     //std::pair<u8, u16> tile_info = { 255, m_tile_number };
-                    m_types.emplace(tile::Info{ 255, m_tile_number }, type_str);
+                    m_types.emplace(entity::Info{ 255, m_tile_number }, type_str);
                 }                
             } else if (type_str.size() == 1 && type_str.back() == '_') {
                 m_text_bar.clear_text();
-                if (m_types.find(tile::Info{ 255,  m_tile_number }) != m_types.end()) {
-                    m_types.erase(tile::Info{ 255, m_tile_number });
+                if (m_types.find(entity::Info{ 255,  m_tile_number }) != m_types.end()) {
+                    m_types.erase(entity::Info{ 255, m_tile_number });
                 }
                 //m_types.at({ 255, m_tile_number }).clear();
             }
@@ -92,8 +92,8 @@ namespace state {
             input::Set::at(m_input_id)->release(input::Key::del);
             if (m_is_showing_tile_set) {
                 m_text_bar.clear_text();
-                if (m_types.find(tile::Info{ 255, m_tile_number }) != m_types.end()) {
-                    m_types.erase(tile::Info{ 255, m_tile_number });
+                if (m_types.find(entity::Info{ 255, m_tile_number }) != m_types.end()) {
+                    m_types.erase(entity::Info{ 255, m_tile_number });
                 }
             } else {
 
@@ -207,13 +207,13 @@ namespace state {
                     Console::log(m_text_bar.get_text(), "\n");
                 }
             }
-            if (m_types.find(tile::Info{ 255, m_tile_number }) == m_types.end() && !m_text_bar.get_text().empty()) {
-                m_types.emplace(tile::Info{ 255, m_tile_number }, m_text_bar.get_text());                
+            if (m_types.find(entity::Info{ 255, m_tile_number }) == m_types.end() && !m_text_bar.get_text().empty()) {
+                m_types.emplace(entity::Info{ 255, m_tile_number }, m_text_bar.get_text());                
             } else {
                 if (m_text_bar.get_text().empty()) {
-                    m_types.erase(tile::Info{ 255, m_tile_number });
+                    m_types.erase(entity::Info{ 255, m_tile_number });
                 } else {
-                    m_types.at(tile::Info{ 255, m_tile_number }) = m_text_bar.get_text();
+                    m_types.at(entity::Info{ 255, m_tile_number }) = m_text_bar.get_text();
                 }
             }
             return true;
@@ -226,14 +226,14 @@ namespace state {
             if (text.substr(text.size() - 4, 4) == "_.bin") {
                 text.erase(m_typing_pos, 1);
                 m_text_bar.set_text(text);
-            }            
+            }
             m_level_path = m_text_bar.get_text();
-            m_time_left_saving = 10;
+            m_time_left_saving = m_time_to_save;
 
-            sprite::Set::save(m_level_path, m_grid_sprite_ids);
+            sprite::Set::save_level(m_level_path, m_grid_sprite_ids);
 
-            load_menu_up_list(m_menu_up_labels[0], std::filesystem::current_path() / "res" / "levels");
-            load_menu_up_list(m_menu_up_labels[1], std::filesystem::current_path() / "res" / "prefabs");
+            load_menu_up_list(m_menu_up_labels[0], std::filesystem::current_path() / "res" / "level");
+            load_menu_up_list(m_menu_up_labels[1], std::filesystem::current_path() / "res" / "prefab");
             return true;
         }
     }
@@ -249,9 +249,9 @@ namespace state {
         out_file.write((i8*)&type_count, sizeof(u16));
 
         for (u16 i = 0; i < 32 * 32; ++i) {
-            if (m_types.find(tile::Info{ 255, i }) != m_types.end()) {
+            if (m_types.find(entity::Info{ 255, i }) != m_types.end()) {
                 //Console::log(i, " ", m_types.at({ 255, i }), "\n");
-                const char* type_data = m_types.at(tile::Info{ 255, i }).data();
+                const char* type_data = m_types.at(entity::Info{ 255, i }).data();
 
                 out_file.write((i8*)&i, sizeof(u16));
                 out_file.write((i8*)type_data, sizeof(i8) * 32);
@@ -283,7 +283,7 @@ namespace state {
 
             //const std::pair<u8, u16> tile_info = { 255, number };
 
-            m_types.emplace(tile::Info{ 255, number }, type);
+            m_types.emplace(entity::Info{ 255, number }, type);
             
         }
 

@@ -4,7 +4,8 @@ module;
 #include <vector>
 #include <sstream>
 module state.game;
-import collider;
+import camera;
+import collider.aabb;
 import console;
 import input;
 import line;
@@ -13,99 +14,12 @@ import sprite;
 import transform;
 import types;
 
-namespace state {
-    std::map<u16, std::string> Game::load_types_from_bin() {
-        std::map<u16, std::string> types_map;
-
-        const std::filesystem::path path = std::filesystem::current_path() / "res" / "types.bin";
-
-        std::ifstream in_file(path, std::ios::in | std::ios::binary);
-        if (!in_file.is_open()) return {};
-
-        u16 type_count = 0;
-        in_file.read((i8*)&type_count, sizeof(u16));
-
-        Console::log("state::Game::load_types_from_bin count: ", type_count, "\n");
-
-        for (u16 i = 0; i < type_count; ++i) {
-            u16 number = 0;
-            char type[32] = {};
-            in_file.read((i8*)&number, sizeof(u16));
-            in_file.read((i8*)type, sizeof(char) * 32);
-
-            //Console::log("type: ", number, " ", type, "\n");
-
-            types_map.emplace(number, type);
-
-        }
-        in_file.close();
-        return types_map;
-    }
-
-
-
-    void Game::load_level_sprites(const std::filesystem::path& path) {
-        Console::log("Game::load_level_sprites\n");
-
-        auto types_map = load_types_from_bin();
-
-        auto sprite_data = sprite::Set::open(path);
-        Vec2i highest_quad_node = { 0, 0 };
-
-        std::vector<Vec2i> quad_nodes;
-
-        for (auto& i : sprite_data) {
-            size_t sprite_id = sprite::Set::make(tile_set_texture_path(i.tile_set));
-            sprite::Set::at(sprite_id)->id = sprite_id;
-            sprite::Set::at(sprite_id)->tile_set = i.tile_set;
-            sprite::Set::at(sprite_id)->layer = i.layer;
-            sprite::Set::at(sprite_id)->offset = { (f32)i.x, (f32)i.y };
-            sprite::Set::at(sprite_id)->source_rect = Rect<i32>{ i.source_x, i.source_y, 16, 16 };
-            sprite::Set::at(sprite_id)->transform_id = m_level_transform_id;
-
-            if (i.tile_set == 255) {
-                u16c tile_x = i.source_x / 16;
-                u16c tile_y = i.source_y / 16;
-                u16c number = tile_x + tile_y * 32;
-                if (types_map.count(number)) {
-                    sprite::Set::at(sprite_id)->type = sprite::from_string(types_map.at(number));
-                    if (start_info().type == start::Type::center && sprite::Set::at(sprite_id)->type == sprite::Type::level_center) {
-                        //Console::log("state::Game::load_level_sprites start: ", sprite::to_string(sprite::Set::at(sprite_id)->type), " position: ", m_start_position.x, " ", m_start_position.y, "\n");
-                        m_start_position = sprite::Set::at(sprite_id)->offset;
-                    } else if (start_info().type == start::Type::L_0 && sprite::Set::at(sprite_id)->type == sprite::Type::level_L_0) {
-                        m_start_position = sprite::Set::at(sprite_id)->offset;
-                        m_player.sprite()->is_leftward = false;
-                    } else if (start_info().type == start::Type::R_0 && sprite::Set::at(sprite_id)->type == sprite::Type::level_R_0) {
-                        m_start_position = sprite::Set::at(sprite_id)->offset;
-                        m_player.sprite()->is_leftward = true;
-                    }
-                    if (sprite::Set::at(sprite_id)->type != sprite::Type::null) {
-                        m_tile_objects.push_back(std::make_unique<tile::Object>());
-                        m_tile_objects.back()->sprite_id(sprite_id);
-                        m_tile_objects.back()->transform_id(m_level_transform_id);
-                        m_tile_objects.back()->load_config("res/tiles/" + types_map.at(number) + ".cfg");
-                    }                    
-                }
-            } else {
-                
-            }
-
-            Vec2i quad_node = { (i.x - i.x % 256 + 256) / 256, (i.y - i.y % 256 + 256) / 256 };
-            if (std::find(quad_nodes.begin(), quad_nodes.end(), quad_node) == quad_nodes.end()) {
-                quad_nodes.push_back(quad_node);
-                m_level_quad_nodes.push_back(std::make_pair(quad_node, std::make_unique<QuadNode>(m_level_transform_id)));
-            }
-            if (quad_node.x > highest_quad_node.x)  highest_quad_node.x = quad_node.x;
-            if (quad_node.y > highest_quad_node.y)  highest_quad_node.y = quad_node.y;
-        }
-        m_camera.scroll_limit = highest_quad_node * 256 - Vec2i{ m_window_w, m_window_h };
-    }
+namespace state {    
     Game::Game(u16c window_w, u16c window_h, std::filesystem::path level_path, start::Info start) {
         //Console::log("Game::Game level: ", level_path, " start: ", start_position.x, " ", start_position.y, "\n");
-        current(state::Type::game);
+        current_state(state::Type::game);
         m_window_w = window_w, m_window_h = window_h;
         m_level_path = level_path;
-
 
         start_info(start);
 
@@ -113,18 +27,21 @@ namespace state {
         m_fps_text.transform_id = m_transform_id;
         m_fps_text.layer = NUM_VISIBLE_LAYERS - 1;
 
-        Console::log("state::Game fps_text transform id: ", m_transform_id, "\n");
+        //Console::log("state::Game fps_text transform id: ", m_transform_id, "\n");
 
         m_background_plane.create(3, 1);
 
-
-
         m_level_transform_id = transform::Set::make();
-
         m_player.level_transform_id = m_level_transform_id;
 
+        //Console::log("level transform_id: ", m_level_transform_id, "\n");
 
-        load_level_sprites(m_level_path);
+        //m_entity_objects.push_back(std::make_unique<player::Object>());
+        //m_entity_objects.back()->level_transform_id = m_level_transform_id;
+        //m_entity_objects.back()->position(m_start_position);
+
+        load_level(m_level_path);
+
 
         /*for (u16 i = 0; i < m_num_quad_nodes.x * m_num_quad_nodes.y; ++i) {
             m_quad_nodes.push_back(std::make_unique<QuadNode>());
@@ -134,15 +51,15 @@ namespace state {
         for (u8 i = 0; i < NUM_VISIBLE_LAYERS; ++i) {
             add_visible_layer(i);
         }
-        m_player.set_layer(NUM_VISIBLE_LAYERS - 1);
 
-        //m_player.sprite_texture("res/textures/tile_blue.png");
+        
 
+        //m_player.start_offset(m_start_position);
+        //m_player.load_config("res/entity/player/player.cfg");
         m_player.position(m_start_position);
-
+        
         //m_player.id = 0;
 
-        //m_player2.set_layer(NUM_VISIBLE_LAYERS - 1);
         //m_player2.position(m_start_position - Vec2f{ 16.0f, 0.0f });
 
 
@@ -182,10 +99,10 @@ namespace state {
             m_camera.add_transform_id(i);
         }*/
 
-        m_camera.add_transform_id(m_level_transform_id);
+        Camera::focus_transform = m_player.get_transform_id();
+        Camera::add_transform_id(m_level_transform_id);
 
-        m_camera.focus_transform = m_player.get_transform_id();
-        m_camera.add_transform_id(m_player.get_transform_id());
+        Camera::add_transform_id(m_player.get_transform_id());
         //m_camera.add_transform_id(m_player2.get_transform_id());
         //m_camera.add_transform_id(m_player3.get_transform_id());
 
@@ -195,9 +112,107 @@ namespace state {
 
         Console::log("state::Game::Game camera position: ", camera_position.x, " ", camera_position.y, "\n");
 
-        m_camera.set_position(camera_position);
+        Camera::set_position(camera_position);
 
         //m_camera.add_transform_id(m_transform_id);
 
+    }
+
+    void Game::check_entities_to_add_input_from(std::shared_ptr<entity::Object> trigger_entity) {
+        if (!entity::is_conduit(trigger_entity->type()) && !entity::is_logic(trigger_entity->type()) && !entity::is_track(trigger_entity->type())
+            && trigger_entity->type() != entity::Type::trigger
+            ) {
+            return;
+        }
+        for (auto& entity : m_entity_objects) {
+            if (!entity::is_conduit(entity->type()) && !entity::is_logic(entity->type()) && !entity::is_track(entity->type())
+                //&& entity->type() != entity::Type::trigger
+                ) {
+                continue;
+            }
+            //bool is_to_add_input = false;
+            //Console::log("check_entities_to_add_input_from: ", entity::type_to_string(entity->type()), "\n");
+            std::vector<Vec2f> offsets_from_trigger_to_check;
+            if (entity->type() == entity::Type::logic_not_U ||
+                entity->type() == entity::Type::conduit_U ||
+                entity->type() == entity::Type::conduit_UL ||
+                entity->type() == entity::Type::conduit_UR ||
+                entity->type() == entity::Type::track_U ||
+                entity->type() == entity::Type::track_UL ||
+                entity->type() == entity::Type::track_UR ||
+                entity->type() == entity::Type::track_UL_1x1 ||
+                entity->type() == entity::Type::track_UR_1x1 ||
+                entity->type() == entity::Type::track_UL_1x2_0 ||
+                entity->type() == entity::Type::track_UR_1x2_0) {
+                offsets_from_trigger_to_check.push_back({ 0.0f,-16.0f });
+            } else if (entity->type() == entity::Type::logic_not_D ||
+                entity->type() == entity::Type::conduit_D ||
+                entity->type() == entity::Type::conduit_DL ||
+                entity->type() == entity::Type::conduit_DR ||
+                entity->type() == entity::Type::track_D ||
+                entity->type() == entity::Type::track_DL ||
+                entity->type() == entity::Type::track_DR ||
+                entity->type() == entity::Type::track_DL_1x1 ||
+                entity->type() == entity::Type::track_DR_1x1 ||
+                entity->type() == entity::Type::track_DL_1x2_0 ||
+                entity->type() == entity::Type::track_DR_1x2_0) {
+                offsets_from_trigger_to_check.push_back({ 0.0f, 16.0f });
+            } else if (entity->type() == entity::Type::logic_not_L ||
+                entity->type() == entity::Type::conduit_L ||
+                entity->type() == entity::Type::conduit_LU ||
+                entity->type() == entity::Type::conduit_LD ||
+                entity->type() == entity::Type::track_L ||
+                entity->type() == entity::Type::track_LU ||
+                entity->type() == entity::Type::track_LD ||
+                entity->type() == entity::Type::track_LU_1x1 ||
+                entity->type() == entity::Type::track_LD_1x1) {
+                offsets_from_trigger_to_check.push_back({ -16.0f, 0.0f });
+            } else if (entity->type() == entity::Type::logic_not_R ||
+                entity->type() == entity::Type::conduit_R ||
+                entity->type() == entity::Type::conduit_RU ||
+                entity->type() == entity::Type::conduit_RD ||
+                entity->type() == entity::Type::track_R ||
+                entity->type() == entity::Type::track_RU ||
+                entity->type() == entity::Type::track_RD ||
+                entity->type() == entity::Type::track_RU_1x1 ||
+                entity->type() == entity::Type::track_RU_2x1_0 ||
+                entity->type() == entity::Type::track_RD_1x1 ||
+                entity->type() == entity::Type::track_RD_2x1_0) {
+                offsets_from_trigger_to_check.push_back({ 16.0f, 0.0f });
+            } else if (entity->type() == entity::Type::logic_and_UD || entity->type() == entity::Type::logic_or_UD) {
+                offsets_from_trigger_to_check.push_back({ 0.0f, 16.0f });
+                offsets_from_trigger_to_check.push_back({ 0.0f,-16.0f });
+            } else if (entity->type() == entity::Type::logic_and_LR || entity->type() == entity::Type::logic_or_LR) {
+                offsets_from_trigger_to_check.push_back({ 16.0f, 0.0f });
+                offsets_from_trigger_to_check.push_back({ -16.0f, 0.0f });
+            } else if (entity->type() == entity::Type::track_RU_2x1_1) {
+                offsets_from_trigger_to_check.push_back({ 16.0f, -16.0f });
+            } else if (entity->type() == entity::Type::track_RD_2x1_1) {
+                offsets_from_trigger_to_check.push_back({ 16.0f, 16.0f });
+            } else if (entity->type() == entity::Type::track_UL_1x2_1) {
+                offsets_from_trigger_to_check.push_back({ -16.0f, -16.0f });
+                offsets_from_trigger_to_check.push_back({ 0.0f, -16.0f });
+            } else if (entity->type() == entity::Type::track_UR_1x2_1) {
+                offsets_from_trigger_to_check.push_back({ 16.0f, -16.0f });
+                //offsets_from_trigger_to_check.push_back({  0.0f, -16.0f });
+            } else if (entity->type() == entity::Type::track_DL_1x2_1) {
+                offsets_from_trigger_to_check.push_back({ -16.0f, 16.0f });
+                offsets_from_trigger_to_check.push_back({ 0.0f, 16.0f });
+            } else if (entity->type() == entity::Type::track_DR_1x2_1) {
+                offsets_from_trigger_to_check.push_back({ 16.0f, 16.0f });
+                offsets_from_trigger_to_check.push_back({ 0.0f, 16.0f });
+            } else if (entity->type() == entity::Type::track_LD_2x1_1) {
+                offsets_from_trigger_to_check.push_back({ -16.0f, 0.0f });
+                offsets_from_trigger_to_check.push_back({ -16.0f, 16.0f });
+            }
+
+            for (auto& offset : offsets_from_trigger_to_check) {
+                if (entity->start_offset() == trigger_entity->start_offset() + offset) {
+                    //entity->direction(entity->start_offset() - trigger_entity->start_offset());
+                    entity->add_input_object(trigger_entity);
+                }
+            }
+
+        }
     }
 }

@@ -35,12 +35,12 @@ namespace state {
                     add_visible_layer(layer);
                 }
                 //Console::log("state::Edit::handle_menu_right layer: ", (int)layer, "\n");
-            }            
+            }
         } else if (m_is_showing_tile_set) {
             Console::log("state::Edit::handle_menu_right position: ", position.x, " ", position.y, "\n");
             Vec2fc bg_sprite_pos = transform::Set::at(m_menu_right_transform_id)->position + 
-                                   sprite::Set::at(m_current_tile_set_bg_sprite_id)->offset;
-            Rectic bg_sprite_rect = sprite::Set::at(m_current_tile_set_bg_sprite_id)->source_rect;
+                                   sprite::Set::at(m_text_current_tile_set_bg_sprite_id)->offset;
+            Rectic bg_sprite_rect = sprite::Set::at(m_text_current_tile_set_bg_sprite_id)->source_rect;
 
             if (position.x >= bg_sprite_pos.x && position.x <= bg_sprite_pos.x + bg_sprite_rect.w &&
                 position.y >= bg_sprite_pos.y && position.y <= bg_sprite_pos.y + bg_sprite_rect.h) {

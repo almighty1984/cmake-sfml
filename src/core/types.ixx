@@ -1,5 +1,6 @@
 module;
 #include <concepts>
+#include <string_view>
 
 export module types;
 
@@ -26,10 +27,81 @@ export using f32c = float const;
 export using f64 = double;
 export using f64c = double const;
 
+
+export constexpr u16 U16_MAX = -1;
 //export constexpr u8c NUM_LAYERS = 2;
 
 export constexpr u8 NUM_VISIBLE_LAYERS = 14;
+export constexpr u8 NUM_LEVEL_LAYERS = 10;
 
+export namespace aabb {
+    enum class Name {
+        null = 0,
+        one, two, three, four, five, six, seven, eight, nine,
+        up, down, left, right,
+        body, body_swim,
+        bone,
+        hit_ground,
+        interact,
+        melee_L, melee_R,
+        track
+    };
+    using Namec = const Name;
+    const char* name_to_string(Namec n) {
+        switch (n) {
+        case Name::one:        return "one";        break;
+        case Name::two:        return "two";        break;
+        case Name::three:      return "three";      break;
+        case Name::four:       return "four";       break;
+        case Name::five:       return "five";       break;
+        case Name::six:        return "six";        break;
+        case Name::seven:      return "seven";      break;
+        case Name::eight:      return "eight";      break;
+        case Name::nine:       return "nine";       break;
+
+        case Name::up:         return "up";         break;
+        case Name::down:       return "down";       break;
+        case Name::left:       return "left";       break;
+        case Name::right:      return "right";      break;
+
+        case Name::body:       return "body";       break;
+        case Name::body_swim:  return "body_swim";  break;
+        case Name::bone:       return "bone";       break;
+        case Name::hit_ground: return "hit_ground"; break;
+        case Name::interact:   return "interact";   break;
+        case Name::melee_L:    return "melee_L";    break;
+        case Name::melee_R:    return "melee_R";    break;
+        case Name::track:      return "track";      break;
+        default:               return "";           break;
+        }
+    }
+    Namec string_to_name(const std::string_view& s) {
+        if      (s == "one")        return Name::one;
+        else if (s == "two")        return Name::two;
+        else if (s == "three")      return Name::three;
+        else if (s == "four")       return Name::four;
+        else if (s == "five")       return Name::five;
+        else if (s == "six")        return Name::six;
+        else if (s == "seven")      return Name::seven;
+        else if (s == "eight")      return Name::eight;
+        else if (s == "nine")       return Name::nine;
+
+        else if (s == "up")         return Name::up;
+        else if (s == "down")       return Name::down;
+        else if (s == "left")       return Name::left;
+        else if (s == "right")      return Name::right;
+
+        else if (s == "body")       return Name::body;
+        else if (s == "body_swim")  return Name::body_swim;
+        else if (s == "bone")       return Name::bone;
+        else if (s == "hit_ground") return Name::hit_ground;
+        else if (s == "interact")   return Name::interact;
+        else if (s == "melee_L")    return Name::melee_L;
+        else if (s == "melee_R")    return Name::melee_R;
+        else if (s == "track")      return Name::track;
+        return Name::null;
+    }
+}
 
 export namespace start {
     enum class Type {
@@ -75,11 +147,13 @@ struct Rect {
     T x = 0, y = 0, w = 0, h = 0;
     Rect() {}
     Rect(T in_x, T in_y, T in_w, T in_h) : x(in_x), y(in_y), w(in_w), h(in_h) {}
-    Rect& operator =(const Rect& other) { x = other.x, y = other.y, w = other.w, h = other.h; return *this; }
+    Rect& operator =(const Rect& other) { x = other.x, y = other.y, w = other.w, h = other.h; return *this; }    
     template<typename T>
     Rect& operator *=(const T scalar) { x *= scalar, y *= scalar, w *= scalar, h *= scalar; return *this; }
     bool operator ==(const Rect& other) const { return (x == other.x && y == other.y && w == other.w && h == other.h); }
     bool operator !=(const Rect& other) const { return !operator==(other); }
+
+    Rect operator +(const Rect& other) const { return { x + other.x, y + other.y, w + other.w, h + other.h }; }
 };
 
 export template<typename T> requires std::integral<T> || std::floating_point<T>

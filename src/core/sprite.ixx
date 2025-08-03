@@ -21,94 +21,8 @@ export namespace sprite {
            layer     = 0;
         u16 source_y = 0, source_x = 0,
             y        = 0, x        = 0;
-    };
-    enum class Type {
-        null,
-        arch_L_1x1, arch_R_1x1, arch_L_2x1_0, arch_L_2x1_1, arch_R_2x1_0, arch_R_2x1_1,
-        clip, clip_duck, clip_D, clip_D_L, clip_D_R, clip_L, clip_R, clip_ledge, clip_ledge_L, clip_ledge_R, clip_U,
-        level_center, level_L_0, level_R_0,
-        slope_L_1x1, slope_R_1x1, slope_L_2x1_0, slope_L_2x1_1, slope_R_2x1_0, slope_R_2x1_1, slope_U,
-        swing,
-        player
-    };
-    using Typec = const Type;
-    Type from_string(const std::string_view& s) {
-        //Console::log("sprite::type_from_string: ", s, "\n");
-        if      (s == "arch_L_1x1")    return Type::arch_L_1x1;
-        else if (s == "arch_R_1x1")    return Type::arch_R_1x1;
-        else if (s == "arch_L_2x1_0")  return Type::arch_L_2x1_0;
-        else if (s == "arch_L_2x1_1")  return Type::arch_L_2x1_1;
-        else if (s == "arch_R_2x1_0")  return Type::arch_R_2x1_0;
-        else if (s == "arch_R_2x1_1")  return Type::arch_R_2x1_1;
-        else if (s == "clip")          return Type::clip;
-        else if (s == "clip_duck")     return Type::clip_duck;
-        else if (s == "clip_L")        return Type::clip_L;
-        else if (s == "clip_R")        return Type::clip_R;
-        else if (s == "clip_D")        return Type::clip_D;
-        else if (s == "clip_D_L")      return Type::clip_D_L;
-        else if (s == "clip_D_R")      return Type::clip_D_R;
-        else if (s == "clip_ledge")    return Type::clip_ledge;
-        else if (s == "clip_ledge_L")  return Type::clip_ledge_L;
-        else if (s == "clip_ledge_R")  return Type::clip_ledge_R;
-        else if (s == "clip_U")        return Type::clip_U;
-        else if (s == "level_center")  return Type::level_center;
-        else if (s == "level_L_0")     return Type::level_L_0;
-        else if (s == "level_R_0")     return Type::level_R_0;
-        else if (s == "slope_L_1x1")   return Type::slope_L_1x1;
-        else if (s == "slope_L_2x1_0") return Type::slope_L_2x1_0;
-        else if (s == "slope_L_2x1_1") return Type::slope_L_2x1_1;
-        else if (s == "slope_R_1x1")   return Type::slope_R_1x1;
-        else if (s == "slope_R_2x1_0") return Type::slope_R_2x1_0;
-        else if (s == "slope_R_2x1_1") return Type::slope_R_2x1_1;
-        else if (s == "slope_U")       return Type::slope_U;
-        else if (s == "swing")         return Type::swing;
-        else if (s == "player")        return Type::player;
-        return Type::null;
-    }
-    std::string_view to_string(const Type type) {
-        switch (type) {
-        case Type::arch_L_1x1:    return "arch_L_1x1";
-        case Type::arch_R_1x1:    return "arch_R_1x1";
-        case Type::arch_L_2x1_0:  return "arch_L_2x1_0";
-        case Type::arch_L_2x1_1:  return "arch_L_2x1_1";
-        case Type::arch_R_2x1_0:  return "arch_R_2x1_0";
-        case Type::arch_R_2x1_1:  return "arch_R_2x1_1";
-        case Type::clip:          return "clip";
-        case Type::clip_duck:     return "clip_duck";
-        case Type::clip_L:        return "clip_L";
-        case Type::clip_R:        return "clip_R";
-        case Type::clip_D:        return "clip_D";
-        case Type::clip_D_L:      return "clip_D_L";
-        case Type::clip_D_R:      return "clip_D_R";
-        case Type::clip_ledge:    return "clip_ledge";
-        case Type::clip_ledge_L:  return "clip_ledge_L";
-        case Type::clip_ledge_R:  return "clip_ledge_R";
-        case Type::clip_U:        return "clip_U";
-        case Type::level_center:  return "level_center";
-        case Type::level_L_0:     return "level_L_0";
-        case Type::level_R_0:     return "level_R_0";
-        case Type::slope_L_1x1:   return "slope_L_1x1";
-        case Type::slope_R_1x1:   return "slope_R_1x1";
-        case Type::slope_L_2x1_0: return "slope_L_2x1_0";
-        case Type::slope_L_2x1_1: return "slope_L_2x1_1";
-        case Type::slope_R_2x1_0: return "slope_R_2x1_0";
-        case Type::slope_R_2x1_1: return "slope_R_2x1_1";
-        case Type::slope_U:       return "slope_U";
-        case Type::swing:         return "swing";
-        case Type::player:        return "player";
-        default:                  return "";
-        }
-    }
-    struct Info {
-        Type type;
-        Rectf rect;
-        Vec2f velocity;
-        i32 collider_id;
-    };
-    using Infoc = const Info;
-
+    };    
     struct Object {
-        Type  type         = Type::null;
         i32   id           = -1,
               transform_id = -1;
 
@@ -183,9 +97,9 @@ export namespace sprite {
             origin = o;
             sf_sprite.setOrigin(sf::Vector2f(o.x, o.y));
         }
-        void set_rotation(f32 r) {
-            if (r > 360.0f) r -= 360.0f;
-            rotation = r + start_rotation;
+        void set_rotation(f32 degrees) {
+            if (degrees > 360.0f) degrees -= 360.0f;
+            rotation = degrees + start_rotation;
             if (rotation > 360.0f) rotation -= 360.0f;
             
             sf_sprite.setRotation(sf::degrees(rotation));
@@ -193,11 +107,11 @@ export namespace sprite {
         f32c radians() const {
             return sf::degrees(rotation).asRadians();            
         }
-        void rotate(f32c r) {
-            rotation += r;
+        void rotate(f32c degrees) {
+            rotation += degrees;
             if (rotation > 360.0f) rotation -= 360.0f;
             else if (rotation < -360.0f) rotation += 360.0f;
-            sf_sprite.setRotation(sf_sprite.getRotation() + sf::degrees(r));
+            sf_sprite.setRotation(sf_sprite.getRotation() + sf::degrees(degrees));
         }
         bool texture(const std::filesystem::path path) {
             texture_path = path;
@@ -248,11 +162,9 @@ export namespace sprite {
         static inline std::vector<i32>     m_unused_ids;
 
     public:
-        static inline u8 num_layers = 10;
+        static std::vector<Object*>& objects() { return m_objects; }
 
-        static std::vector<Object*>& get() { return m_objects; }
-
-        static inline std::vector<Object*> get_objects(u8c layer) {
+        static inline std::vector<Object*> objects_in_layer(u8c layer) {
             std::vector<Object*> same_layer_objects;
             std::for_each(m_objects.cbegin(), m_objects.cend(),
                 [&](Object* i) { if (i && i->id != -1 && i->layer == layer) same_layer_objects.push_back(i); }
@@ -283,7 +195,7 @@ export namespace sprite {
         }
         static bool erase(size_t i) {
             if (!(i < m_objects.size()) || !m_objects.at(i)) {
-                Console::log("sprite::Set::erase ", i, " can't do it\n");
+                //Console::log("sprite::Set::erase ", i, " can't do it!\n");
                 return false;
             }
             //Console::log("sprite::Set::erase ", i, "\n");
@@ -297,7 +209,7 @@ export namespace sprite {
             //}
             //Console::log("\n");
             return true;
-        }
+        }        
         static void update() {
             for (auto& i : m_objects) {
                 if (i) i->update();
@@ -310,7 +222,7 @@ export namespace sprite {
             m_objects.clear();
             m_unused_ids.clear();
         }
-        static void save(const std::filesystem::path& path, std::vector<i32>& grid_sprite_ids) {
+        static void save_level(const std::filesystem::path& path, std::vector<i32>& grid_sprite_ids) {
             Console::log("sprite::Set::save\n");
             std::vector<Object*> sprites_to_save;
             for (auto& i : grid_sprite_ids) {
@@ -318,7 +230,7 @@ export namespace sprite {
                 u16c   columns = m_objects.at(i)->source_rect.w / 16;
                 Vec2fc offset  = m_objects.at(i)->offset;
 
-                for (u8 layer = 0; layer < num_layers; ++layer) {
+                for (u8 layer = 0; layer < NUM_LEVEL_LAYERS; ++layer) {
                     for (u16 y = 0; y < rows; ++y) {
                         for (u16 x = 0; x < columns; ++x) {                                                        
                             /*std::for_each(m_objects.cbegin(), m_objects.cend(),
@@ -334,7 +246,7 @@ export namespace sprite {
                     }
                 }
             }
-            Console::log("sprites_to_save.size: ", sprites_to_save.size(), "\n");
+            Console::log("sprites_to_save size: ", sprites_to_save.size(), "\n");
 
             u16c size = (u16)sprites_to_save.size();
 
@@ -343,7 +255,7 @@ export namespace sprite {
 
             for (auto& i : sprites_to_save) {
                 if (!i) continue;
-                Console::log((int)i->layer, " ", i->offset.y, " ", i->offset.x, " ");
+                //Console::log((int)i->layer, " ", i->offset.y, " ", i->offset.x, " ");
 
                 u8c  tile_set = i->tile_set;
                 u8c  layer = i->layer;
@@ -361,7 +273,7 @@ export namespace sprite {
             }
             out_file.close();
         }
-        static std::vector<Data> open(const std::filesystem::path& path) {
+        static std::vector<Data> load_level(const std::filesystem::path& path) {
             std::ifstream in_file(path, std::ios::in | std::ios::binary);
             if (!in_file.is_open()) return {};
 

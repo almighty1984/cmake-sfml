@@ -42,7 +42,7 @@ namespace undo {
     };
 };
 
-namespace tile {
+namespace entity {
     struct Info {
         u8  set    = 0;
         u16 number = 0;
@@ -81,24 +81,24 @@ export namespace state {
         ~Edit();
 
     private:
-        i32    m_input_id = -1;
+        i32 m_input_id = -1;
 
-        i32    m_mouse_transform_id                 = -1,
-               m_level_transform_id                 = -1,
-               m_tile_set_transform_id              = -1,
-               m_tile_set_bg_transform_id           = -1,
-               m_grid_transform_id                  = -1, m_grid_map_transform_id   = -1,
-               m_menu_up_transform_id               = -1,
-               m_menu_down_transform_id             = -1, m_menu_right_transform_id = -1,
-               m_selection_on_tile_set_transform_id = -1;
+        i32 m_mouse_transform_id                 = -1,
+            m_level_transform_id                 = -1,
+            m_tile_set_transform_id              = -1,
+            m_tile_set_bg_transform_id           = -1,
+            m_grid_transform_id                  = -1, m_grid_map_transform_id   = -1,
+            m_menu_up_transform_id               = -1,
+            m_menu_down_transform_id             = -1, m_menu_right_transform_id = -1,
+            m_selection_on_tile_set_transform_id = -1;
 
-        i32    m_menu_down_bg_sprite_id             = -1, m_menu_right_bg_sprite_id = -1,
-               m_position_on_grid_map_sprite_id     = -1,
-               m_save_sprite_id                     = -1,
-               m_tile_set_sprite_id                 = -1, m_tile_set_bg_sprite_id   = -1,
-               m_active_layer_sprite_id             = -1,
-               m_text_bar_bg_sprite_id              = -1,
-               m_current_tile_set_bg_sprite_id      = -1;
+        i32 m_menu_down_bg_sprite_id             = -1, m_menu_right_bg_sprite_id = -1,
+            m_position_on_grid_map_sprite_id     = -1,
+            m_save_sprite_id                     = -1,
+            m_tile_set_sprite_id                 = -1, m_tile_set_bg_sprite_id   = -1,
+            m_active_layer_sprite_id             = -1,
+            m_text_bar_bg_sprite_id              = -1,
+            m_text_current_tile_set_bg_sprite_id = -1;
 
         std::string                     m_menu_up_labels[2] = { "Open ", "Import" };
         std::map<std::string, MenuList> m_menu_up_lists;
@@ -118,7 +118,7 @@ export namespace state {
 
         std::vector<std::unique_ptr<BitmapText>> m_menu_up_bar;
 
-        BitmapText m_current_tile_set,
+        BitmapText m_text_current_tile_set,
                    m_text_bar,
                    m_info_message;
 
@@ -142,7 +142,7 @@ export namespace state {
             
         u16  m_menu_up_w        = 0,
              m_timer            = 0,
-             m_time_left_saving = 0;
+             m_time_left_saving = 0, m_time_to_save = 10;
 
         std::vector<undo::Info> m_undo_info_placed,
                                 m_undo_info_replaced,
@@ -154,17 +154,17 @@ export namespace state {
 
         std::vector<undo::Act>  m_undo_acts;
 
-        std::filesystem::path m_grid_texture_path     = "res/textures/editor_grid_block.png",
-                              m_grid_map_texture_path = "res/textures/tile_blue.png",
-                              m_mouse_texture_path    = "res/textures/tile_selection.png",
+        std::filesystem::path m_grid_texture_path     = "res/texture/editor_grid_block.png",
+                              m_grid_map_texture_path = "res/texture/tile_blue.png",
+                              m_mouse_texture_path    = "res/texture/tile_selection.png",
                               m_level_path            = "";
 
-        std::map<tile::Info, std::string> m_types;
+        std::map<entity::Info, std::string> m_types;
         
         bool is_all_valid();
         void handle_menu_up();
         bool add_to_menu_up_bar(const std::string& text);
-        void load_menu_up_list(const std::string& menu, const std::filesystem::path& levels_dir_path);
+        void load_menu_up_list(const std::string& menu, const std::filesystem::path& level_dir_path);
         bool add_to_menu_up_list(const std::string& menu, const std::filesystem::path& level_path);
         bool remove_level(const std::filesystem::path& path);
         

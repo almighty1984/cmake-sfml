@@ -36,23 +36,23 @@ namespace state {
         }
 
         for (auto& i : m_menu_up_bar) {
-            i.get()->texture("res/fonts/font_8_gray.png");
+            i.get()->texture("res/texture/font_8_gray.png");
         }
         //Console::log("m_is_mouse_on_menu_up_open_list: ", m_is_mouse_on_menu_up_open_list, "\n");
         if (mouse_on_menu_bar_item == 0 || is_mouse_on_menu_up_list[0]) {
-            m_menu_up_bar.at(0).get()->texture("res/fonts/font_8_white.png");
+            m_menu_up_bar.at(0).get()->texture("res/texture/font_8_white.png");
             transform::Set::at(m_menu_up_lists[m_menu_up_labels[0]].transform_id)->position = { 0.0f, 8.0f };
 
             f32c level_list_entry_y = input::Set::mouse.y - transform::Set::at(m_menu_up_lists[m_menu_up_labels[0]].transform_id)->position.y;
             const size_t level_list_entry = (size_t)(level_list_entry_y - std::fmodf(level_list_entry_y, 8.0f)) / 8;
             if (level_list_entry < m_menu_up_lists[m_menu_up_labels[0]].items.size()) {
-                m_menu_up_bar.at(0).get()->texture("res/fonts/font_8_white.png");
+                m_menu_up_bar.at(0).get()->texture("res/texture/font_8_white.png");
                 for (size_t i = 0; i < m_menu_up_lists[m_menu_up_labels[0]].items.size(); ++i) {
                     if (i != level_list_entry) {
-                        m_menu_up_lists[m_menu_up_labels[0]].items.at(i).get()->texture("res/fonts/font_8_gray.png");
+                        m_menu_up_lists[m_menu_up_labels[0]].items.at(i).get()->texture("res/texture/font_8_gray.png");
                     }
                 }
-                m_menu_up_lists[m_menu_up_labels[0]].items.at(level_list_entry).get()->texture("res/fonts/font_8_white.png");
+                m_menu_up_lists[m_menu_up_labels[0]].items.at(level_list_entry).get()->texture("res/texture/font_8_white.png");
 
                 if (input::Set::at(m_input_id)->is_pressed(input::Button::left)) {
                     input::Set::at(m_input_id)->release(input::Button::left);
@@ -80,7 +80,7 @@ namespace state {
             transform::Set::at(m_menu_up_lists[m_menu_up_labels[1]].transform_id)->position = { 0.0f, m_menu_up_lists[m_menu_up_labels[1]].bg_h * -1.0f };
         }
         if (mouse_on_menu_bar_item == 1 || is_mouse_on_menu_up_list[1]) {
-            m_menu_up_bar.at(1).get()->texture("res/fonts/font_8_white.png");
+            m_menu_up_bar.at(1).get()->texture("res/texture/font_8_white.png");
             transform::Set::at(m_menu_up_lists[m_menu_up_labels[0]].transform_id)->position = { 0.0f, m_menu_up_lists[m_menu_up_labels[0]].bg_h * -1.0f };
             transform::Set::at(m_menu_up_lists[m_menu_up_labels[1]].transform_id)->position = { (f32)sprite::Set::at(m_menu_up_bar_bg_sprite_ids.at(0))->source_rect.w, 8.0f };
 
@@ -90,10 +90,10 @@ namespace state {
             if (list_entry < m_menu_up_lists[m_menu_up_labels[1]].items.size()) {
                 for (size_t i = 0; i < m_menu_up_lists[m_menu_up_labels[1]].items.size(); ++i) {
                     if (i != list_entry) {
-                        m_menu_up_lists[m_menu_up_labels[1]].items.at(i).get()->texture("res/fonts/font_8_gray.png");
+                        m_menu_up_lists[m_menu_up_labels[1]].items.at(i).get()->texture("res/texture/font_8_gray.png");
                     }
                 }
-                m_menu_up_lists[m_menu_up_labels[1]].items.at(list_entry).get()->texture("res/fonts/font_8_white.png");
+                m_menu_up_lists[m_menu_up_labels[1]].items.at(list_entry).get()->texture("res/texture/font_8_white.png");
             }
         }
     }
@@ -115,7 +115,7 @@ namespace state {
 
         m_menu_up_w += bg_w;
 
-        m_menu_up_bar_bg_sprite_ids.push_back(sprite::Set::make("res/textures/editor_menu_bg.png"));
+        m_menu_up_bar_bg_sprite_ids.push_back(sprite::Set::make("res/texture/editor_menu_bg.png"));
         sprite::Set::at(m_menu_up_bar_bg_sprite_ids.back())->source_rect = { 0, 0, bg_w, bg_h };
         sprite::Set::at(m_menu_up_bar_bg_sprite_ids.back())->layer = MENU_LAYER - 1;
         sprite::Set::at(m_menu_up_bar_bg_sprite_ids.back())->transform_id = m_menu_up_transform_id;
@@ -144,9 +144,9 @@ namespace state {
         std::string separator_str;
         separator_str = (char)std::filesystem::path::preferred_separator;
 
-        std::string folder_name = "levels";
+        std::string folder_name = "level";
         if (menu == m_menu_up_labels[1]) {
-            folder_name = "prefabs";
+            folder_name = "prefab";
         }
 
         size_t res_path_pos = path_str.find("res" + separator_str, 0);
@@ -154,7 +154,7 @@ namespace state {
             Console::log("state::Edit::add_to_menu_up_list res" + separator_str + " not found!\n");
             return false;
         }        
-        path_str.erase(0, res_path_pos);    // keep last part of the path (res/levels/...)
+        path_str.erase(0, res_path_pos);    // keep last part of the path (res/level/...)
         
 
         std::unique_ptr<BitmapText> bitmap_text = std::make_unique<BitmapText>();

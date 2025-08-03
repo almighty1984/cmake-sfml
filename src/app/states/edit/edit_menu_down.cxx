@@ -111,7 +111,7 @@ namespace state {
             Console::error("state::Edit::remove_level filesystem error : ", err.what(), "\n");
             return false;
         }
-        //load_menu_up_open_list(std::filesystem::current_path() / "res" / "levels");
+        //load_menu_up_open_list(std::filesystem::current_path() / "res" / "level");
         return true;
     }   
 }

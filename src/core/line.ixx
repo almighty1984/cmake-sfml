@@ -119,7 +119,7 @@ export namespace line {
         static inline std::vector<Object*>  m_objects;
         static inline std::vector<i32>      m_unused_ids;
     public:        
-        static inline std::vector<Object*> get_objects(u8c layer) {
+        static inline std::vector<Object*> objects_in_layer(u8c layer) {
             std::vector<Object*> same_layer_objects;
             std::for_each(m_objects.cbegin(), m_objects.cend(),
                 [&](Object* i) { if (i && i->id != -1 && i->layer == layer) same_layer_objects.push_back(i); }

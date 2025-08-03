@@ -35,9 +35,7 @@ public:
     void view(Rectfc view) {
         m_view = view;
         m_sf_window.setView(sf::View((sf::FloatRect(sf::Vector2f(view.x * m_scale, view.y * m_scale), sf::Vector2f(view.w * m_scale, view.h * m_scale)))));
-
-        //m_sf_window.setView(sf::View({ view.x * m_scale, view.y * m_scale }, { view.w * m_scale, view.h * m_scale }));
-        
+        //m_sf_window.setView(sf::View({ view.x * m_scale, view.y * m_scale }, { view.w * m_scale, view.h * m_scale }));        
     }
     void clear()   { m_sf_window.clear();   }
     void close()   { m_sf_window.close();   }

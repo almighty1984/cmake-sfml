@@ -41,7 +41,6 @@ namespace state {
             while (file_text.at(label_start) == '	' || file_text.at(label_start) == ' ' || file_text.at(label_start) == '\n') {
                 ++label_start;
             }
-
             const size_t label_end = file_text.find(" ",  label_start);
             const size_t equals    = file_text.find("=",  label_start);
             const size_t end_line  = file_text.find("\n", label_start);                        
@@ -54,26 +53,19 @@ namespace state {
             while (file_text.at(type_start) == '	' || file_text.at(type_start) == ' ' || file_text.at(type_start) == '\n') {
                 ++type_start;
             }
-
             const std::string type = file_text.substr(type_start, end_line - type_start);
 
-            //const std::pair<u8, u16> tile_info = { 255, number };
-
-            m_types.emplace(tile::Info{ 255, number }, type);
-
+            m_types.emplace(entity::Info{ 255, number }, type);
             label_start = end_line + 1;
-        }
-
-
-        
+        }        
     }
 
     void Edit::init_tile_set(u8c tile_set) {
         m_prev_tile_set = m_tile_set;
         m_tile_set = tile_set;
         const std::string tile_set_str = std::to_string((int)m_tile_set);
-        m_current_tile_set.set_text(tile_set_str);
-        sprite::Set::at(m_tile_set_sprite_id)->texture("res/textures/set_" + tile_set_str + ".png");
+        m_text_current_tile_set.set_text(tile_set_str);
+        sprite::Set::at(m_tile_set_sprite_id)->texture("res/texture/set_" + tile_set_str + ".png");
 
         if (!m_is_showing_tile_set) return;
         
@@ -81,8 +73,8 @@ namespace state {
 
         if (tile_set == 255) {
             if (!m_selection_on_tile_set_sprite_ids.empty() && 
-                m_types.find(tile::Info{ 255, m_tile_number }) != m_types.end()) {
-                m_text_bar.set_text(m_types.at(tile::Info{ 255, m_tile_number }));
+                m_types.find(entity::Info{ 255, m_tile_number }) != m_types.end()) {
+                m_text_bar.set_text(m_types.at(entity::Info{ 255, m_tile_number }));
             }
             sprite::Set::at(m_save_sprite_id)->is_hidden = false;
         } else {
@@ -98,40 +90,43 @@ namespace state {
         Console::log("state::Edit::enter_tile_set\n");
         transform::Set::at(m_tile_set_bg_transform_id)->position.y = 0.0f;
         transform::Set::at(m_tile_set_transform_id)->position.y -= 512.0f;
-        sprite::Set::at(m_current_tile_set_bg_sprite_id)->is_hidden = true;
+        sprite::Set::at(m_text_current_tile_set_bg_sprite_id)->is_hidden = true;        
         
         for (auto& i : m_is_hidden_layer_sprite_ids) {
             sprite::Set::at(i)->is_hidden = true;
         }
         sprite::Set::at(m_active_layer_sprite_id)->is_hidden = true;
+        sprite::Set::at(m_position_on_grid_map_sprite_id)->is_hidden = true;
 
-        sprite::Set::at(m_current_tile_set_bg_sprite_id)->is_hidden = false;        
-        m_current_tile_set.set_is_hidden(false);
+        sprite::Set::at(m_text_current_tile_set_bg_sprite_id)->is_hidden = false;        
+        m_text_current_tile_set.set_is_hidden(false);
         if (m_tile_set == 255) {
-            if (m_types.find(tile::Info{ 255, m_tile_number }) == m_types.end()) {
+            if (m_types.find(entity::Info{ 255, m_tile_number }) == m_types.end()) {
                 m_text_bar.clear_text();
             } else {
-                m_text_bar.set_text(m_types.at(tile::Info{ 255, m_tile_number }));
+                m_text_bar.set_text(m_types.at(entity::Info{ 255, m_tile_number }));
             }
             sprite::Set::at(m_save_sprite_id)->is_hidden = false;
         } else {
             m_text_bar.clear_text();
             sprite::Set::at(m_save_sprite_id)->is_hidden = true;
         }
-        
+        sprite::Set::at(m_tile_set_sprite_id)->is_hidden = false;        
     }
     void Edit::exit_tile_set() {
         Console::log("state::Edit::exit_tile_set\n");
         transform::Set::at(m_tile_set_bg_transform_id)->position.y = 512.0f;
         transform::Set::at(m_tile_set_transform_id)->position.y += 512.0f;
-        sprite::Set::at(m_current_tile_set_bg_sprite_id)->is_hidden = true;
-        m_current_tile_set.set_is_hidden(true);
+        sprite::Set::at(m_text_current_tile_set_bg_sprite_id)->is_hidden = true;
+        sprite::Set::at(m_tile_set_sprite_id)->is_hidden = true;
+        m_text_current_tile_set.set_is_hidden(true);
            
         for (auto& i : m_is_hidden_layer_sprite_ids) {
             sprite::Set::at(i)->is_hidden = false;
         }
         sprite::Set::at(m_active_layer_sprite_id)->is_hidden = false;
         sprite::Set::at(m_save_sprite_id)->is_hidden = false;
+        sprite::Set::at(m_position_on_grid_map_sprite_id)->is_hidden = false;
 
         if (m_level_path.empty()) {
             m_text_bar.clear_text();
@@ -140,20 +135,25 @@ namespace state {
         }
     }
     void Edit::move_tile_set(Vec2fc amount) {
-        //Console::log("state::Edit::move_tile_set ", amount.x, " ", amount.y, " ", " position: ", transform::Set::at(m_tile_set_transform_id)->position.x, " ", transform::Set::at(m_tile_set_transform_id)->position.y, "\n");        
+        Console::log("state::Edit::move_tile_set ", amount.x, " ", amount.y, " ", " position: ", transform::Set::at(m_tile_set_transform_id)->position.x, " ", transform::Set::at(m_tile_set_transform_id)->position.y, "\n");        
         f32c edge_y = m_is_showing_tile_set ? 0.0f : 512.0f;
         Vec2fc prev_position = transform::Set::at(m_tile_set_transform_id)->position;
+
+        Vec2f limit = { -224.0f, -352.0f };
+        if (view() == Rectf{ 0.0f, 0.0f, 480.0f, 270.0f }) {
+            limit = { -64.0f, -272.0f };
+        }
 
         transform::Set::at(m_tile_set_transform_id)->position += amount;
         if (transform::Set::at(m_tile_set_transform_id)->position.y > edge_y) {
             transform::Set::at(m_tile_set_transform_id)->position.y = edge_y;
-        } else if (transform::Set::at(m_tile_set_transform_id)->position.y < edge_y - 352.0f) {
-            transform::Set::at(m_tile_set_transform_id)->position.y = edge_y - 352.0f;
+        } else if (transform::Set::at(m_tile_set_transform_id)->position.y < edge_y + limit.y) {
+            transform::Set::at(m_tile_set_transform_id)->position.y = edge_y + limit.y;
         }
         if (transform::Set::at(m_tile_set_transform_id)->position.x > 0.0f) {
             transform::Set::at(m_tile_set_transform_id)->position.x = 0.0f;
-        } else if (transform::Set::at(m_tile_set_transform_id)->position.x < -192.0f) {
-            transform::Set::at(m_tile_set_transform_id)->position.x = -192.0f;
+        } else if (transform::Set::at(m_tile_set_transform_id)->position.x < limit.x) {
+            transform::Set::at(m_tile_set_transform_id)->position.x = limit.x;
         }
         transform::Set::at(m_selection_on_tile_set_transform_id)->position += (transform::Set::at(m_tile_set_transform_id)->position - prev_position);
     }
@@ -165,7 +165,7 @@ namespace state {
                 return false;
             }
         }
-        i32c sprite_id = sprite::Set::make("res/textures/tile_selection.png");
+        i32c sprite_id = sprite::Set::make("res/texture/tile_selection.png");
         sprite::Set::at(sprite_id)->layer = SELECTION_ON_TILE_SET_LAYER;
         sprite::Set::at(sprite_id)->transform_id = m_selection_on_tile_set_transform_id;
         sprite::Set::at(sprite_id)->offset = offset;
@@ -176,12 +176,12 @@ namespace state {
             Vec2fc tile_offset = offset / 16.0f;
             m_tile_number = std::fmodf(tile_offset.x, 32.0f) + tile_offset.y * 32.0f;
 
-            //if (m_types.at(tile::Info{ 255, m_tile_number }) == m_text_bar.get_text()) {
+            //if (m_types.at(entity::Info{ 255, m_tile_number }) == m_text_bar.get_text()) {
                 //return false;
             //}
 
-            if (m_types.find(tile::Info{ 255, m_tile_number }) != m_types.end()) {
-                m_text_bar.set_text(m_types.at(tile::Info{ 255, m_tile_number }));
+            if (m_types.find(entity::Info{ 255, m_tile_number }) != m_types.end()) {
+                m_text_bar.set_text(m_types.at(entity::Info{ 255, m_tile_number }));
                 int num = 0;
                 //Console::log("state::Edit::select_on_tile_set text_bar size: ", m_text_bar.get_sprite_ids().size(), "\n");
                 
@@ -245,8 +245,8 @@ namespace state {
         m_tile_number = std::fmodf(tile_offset.x, 32.0f) + tile_offset.y * 32.0f;
 
         if (m_tile_set == 255 && m_selection_on_tile_set_sprite_ids.size() == 1) {
-            if (m_types.find(tile::Info{ 255, m_tile_number }) != m_types.end()) {
-                m_text_bar.set_text(m_types.at(tile::Info{ 255, m_tile_number }));
+            if (m_types.find(entity::Info{ 255, m_tile_number }) != m_types.end()) {
+                m_text_bar.set_text(m_types.at(entity::Info{ 255, m_tile_number }));
             } else {
                 m_text_bar.clear_text();
             }

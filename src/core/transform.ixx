@@ -9,66 +9,38 @@ import types;
 export namespace transform {
     struct Object {
         i32   id = -1;
-        Vec2f position             = {},
-              start_position       = {},
-              velocity             = {},
-              velocity_limit       = {},
-              start_velocity_limit = {},
-              moved_velocity       = {},
-              acceleration         = {},
-              deceleration         = {};
-
-        //f32 time_left_colliding = 0.0f;
-        //f32 time_to_collide;
-        //bool is_colliding() { return time_left_colliding > 0.0f; }
+        Vec2f position             = { 0.0f, 0.0f },
+              start_position       = { 0.0f, 0.0f },
+              velocity             = { 0.0f, 0.0f },              
+              moved_velocity       = { 0.0f, 0.0f },
+              acceleration         = { 0.0f, 0.0f },
+              deceleration         = { 0.0f, 0.0f },
+              velocity_limit       = { 0.0f, 0.0f },
+              start_velocity_limit = { 0.0f, 0.0f };
 
         Object() : id(-1),
-            position(), start_position(), velocity(),
-            acceleration(0.0f, 0.0f),
-            deceleration(0.0f, 0.0f),
-            velocity_limit(0.0f, 0.0f) {
+                   position({ 0.0f, 0.0f }), start_position({ 0.0f, 0.0f }),
+                   velocity({ 0.0f, 0.0f }), moved_velocity({ 0.0f, 0.0f }),
+                   acceleration({ 0.0f, 0.0f }), deceleration({ 0.0f, 0.0f }),
+                   velocity_limit({ 0.0f, 0.0f }), start_velocity_limit({ 0.0f, 0.0f }) {
         }
         Object(Vec2f p) : Object() {
             start_position = p;
         }
         ~Object() {
-            Console::log("transform::~Object()\n");
+            //Console::log("transform::~Object()\n");
             id = -1;
         }
         void update() {
-            moved_velocity = decelerate(moved_velocity, deceleration);
+            //moved_velocity = decelerate(moved_velocity, deceleration);
             moved_velocity = clamp(moved_velocity, velocity_limit);
 
             velocity = decelerate(velocity, deceleration);
             velocity = clamp(velocity, velocity_limit);
 
-            position += velocity + moved_velocity;
-            //if (m_overlap.x != 0.0f) {
-            //    //Console::log(id, " overlap: ", m_overlap.x, " ", m_overlap.y, "\n");
-            //    position.x += m_overlap.x;
-            //    m_overlap.x = 0.0f;
-            //}
-            //if (m_overlap.y != 0.0f) {
-            //    //Console::log(id, " overlap: ", m_overlap.x, " ", m_overlap.y, "\n");
-            //    position.y += m_overlap.y;
-            //    m_overlap.y = 0.0f;
-            //}
-            //if (time_left_colliding > 0.0f) {
-            //    time_left_colliding -= 1.0f;
-            //}
+            position += velocity + moved_velocity;            
         }
-
-        /*void collide_x(f32 overlap_x) {
-            time_left_colliding = time_to_collide;
-            m_overlap.x = overlap_x;
-        }
-        void collide_y(f32c overlap_y) {
-            time_left_colliding = time_to_collide;
-            m_overlap.y = overlap_y;
-        }*/
     private:
-        Vec2f m_overlap;
-
         Vec2f clamp(Vec2f v, Vec2f limit) {
             if (limit == Vec2f{ 0.0f, 0.0f }) return v;
             if (v.x < -limit.x) {
@@ -137,7 +109,7 @@ export namespace transform {
         }
         static bool erase(size_t i) {
             if (!(i < m_objects.size()) || !m_objects.at(i)) {
-                Console::log("transform::Set::erase ", i, " can't do it\n");
+                //Console::log("transform::Set::erase ", i, " can't do it!\n");
                 return false;
             }
             delete m_objects.at(i);
@@ -147,8 +119,7 @@ export namespace transform {
         }
         static void update() {
             for (auto& i : m_objects) {
-                if (!i) continue;
-                i->update();
+                if (i) i->update();
             }
         }
         static void clear() {
