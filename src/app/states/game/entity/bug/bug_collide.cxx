@@ -61,7 +61,7 @@ void entity::Bug::collide_x(aabb::cInfo our, aabb::cInfo other) {
 
         if (m_state == entity::State::tossed ||
             m_state == entity::State::upended && (transform()->velocity.x < -1.0F || transform()->velocity.x > 1.0F)) {
-
+            transform()->velocity.x *= -0.9F;
             cVec2F hit_pos = { (our_rect.x < other_rect.x ? other_rect.x : other_rect.w) - 8.0F,
                                (our_rect.y < other_rect.y ? other_rect.y : other_rect.h) - 8.0F };
 
@@ -73,7 +73,7 @@ void entity::Bug::collide_x(aabb::cInfo our, aabb::cInfo other) {
                 sound::Manager::get(m_melee_sound_id)->play();
             }
             return;
-        }        
+        }
         
         if (transform()->velocity.x > 0.0F && our_rect.x < other_rect.x) {
             transform()->velocity.x = -1.0F;
@@ -92,10 +92,10 @@ void entity::Bug::collide_x(aabb::cInfo our, aabb::cInfo other) {
 
         if (m_state == entity::State::tossed ||
             m_state == entity::State::upended && (transform()->velocity.x > 1.0F)) {
-
+            transform()->velocity.x *= -0.9F;
             cVec2F hit_pos = { (our_rect.x < other_rect.x ? other_rect.x : other_rect.w) - 8.0F,
                                     (our_rect.y < other_rect.y ? other_rect.y : other_rect.h) - 8.0F };
-
+            
             spawn(particle::Type::hit, hit_pos, {});
             hurt(other.owner);
             m_next_state = entity::State::hurt;
@@ -116,7 +116,7 @@ void entity::Bug::collide_x(aabb::cInfo our, aabb::cInfo other) {
 
         if (m_state == entity::State::tossed ||
             m_state == entity::State::upended && (transform()->velocity.x < -1.0F)) {
-
+            transform()->velocity.x *= -0.9F;
             cVec2F hit_pos = { (our_rect.x < other_rect.x ? other_rect.x : other_rect.w) - 8.0F,
                                (our_rect.y < other_rect.y ? other_rect.y : other_rect.h) - 8.0F };
             spawn(particle::Type::hit, hit_pos, {});
@@ -279,6 +279,21 @@ void entity::Bug::collide_y(aabb::cInfo our, aabb::cInfo other) {
 
         //if (!m_is_on_ground) return;
         if (other_type == entity::Type::clip_ledge) {
+            if (m_state == entity::State::tossed ||
+                m_state == entity::State::upended && (transform()->velocity.y < -1.0F || transform()->velocity.y > 1.0F)) {
+                transform()->velocity.y *= -0.9F;
+                cVec2F hit_pos = { (our_rect.x < other_rect.x ? other_rect.x : other_rect.w) - 8.0F,
+                                   (our_rect.y < other_rect.y ? other_rect.y : other_rect.h) - 8.0F };
+
+                spawn(particle::Type::hit, hit_pos, {});
+                hurt(other.owner);
+                m_next_state = entity::State::hurt;
+                if (m_melee_sound_id != -1 && sound::Manager::get(m_melee_sound_id)) {
+                    sound::Manager::get(m_melee_sound_id)->position({ hit_pos.x / 160.0F, hit_pos.y / 90.0F });
+                    sound::Manager::get(m_melee_sound_id)->play();
+                }
+                return;
+            }
             //Console::log("our: ", our_rect.y, " ", our_rect.h, "\n");
             if (our_rect.h > other_rect.y + transform()->acceleration.y) return;
 

@@ -46,12 +46,20 @@ export namespace entity {
             cVec2F our_velocity = transform()->velocity;
             cVec2F other_velocity = other.owner->transform()->velocity;
 
-            if (m_parent && entity::is_clip(other_type)) {
-                if (other_rect.x < our_rect.x) {
-                    m_is_near_wall_L = true;
-                }
-                if (other_rect.w > our_rect.w) {
-                    m_is_near_wall_R = true;
+            if (other.owner->parent() && other_type == entity::Type::brick) {
+                return;
+            }
+
+            if (m_parent) {                
+                if (entity::is_clip(other_type) ||
+                    other_type == entity::Type::brick) {
+                    //Console::log(entity::to_string(other_type), " has parent\n");
+                    if (our_rect.w > other_rect.w) {
+                        m_is_near_wall_L = true;
+                    }
+                    if (our_rect.x < other_rect.x) {
+                        m_is_near_wall_R = true;
+                    }
                 }
                 return;
             }
@@ -82,24 +90,26 @@ export namespace entity {
             else if (other_type == entity::Type::clip       ||
                      other_type == entity::Type::clip_duck  ||
                      other_type == entity::Type::clip_ledge ||
-                    (other_type == entity::Type::clip_L || other_type == entity::Type::clip_LD && transform()->velocity.x > 0.0F) ||
-                    (other_type == entity::Type::clip_R || other_type == entity::Type::clip_RD && transform()->velocity.x < 0.0F)
-                    ) {                
+                    ((other_type == entity::Type::clip_L || other_type == entity::Type::clip_LD) && transform()->velocity.x > 0.0F) ||
+                    ((other_type == entity::Type::clip_R || other_type == entity::Type::clip_RD) && transform()->velocity.x < 0.0F)
+                    ) {
                 transform()->position.x -= overlap_x;
                 transform()->moved_velocity.x = 0.0F;
-
-                if (m_state == entity::State::tossed && std::abs(transform()->velocity.x >= 1.5F)) {
+                //Console::log("velocity.x ", transform()->velocity.x, "\n");
+                if (m_state == entity::State::tossed && std::abs(transform()->velocity.x) >= 1.5F) {                    
                     transform()->velocity.x *= -0.9F;
                     hurt(other.owner);
                     return;
                 }
             } else if (other_type == entity::Type::frog) {
-                transform()->position.x -= overlap_x;
-                transform()->velocity.x *= -0.9F;
+                transform()->position.x -= overlap_x;                
                 if (m_state == entity::State::tossed && std::abs(transform()->velocity.x) >= 1.5F) {
+                    transform()->velocity.x *= -0.9F;
                     hurt(other.owner);
                     other.owner->hurt(this);
+                    return;
                 }
+                transform()->velocity.x = 0.0F;
             }
             else if (other_type == entity::Type::player) {
                 transform()->velocity.x = other_velocity.x;
@@ -180,16 +190,29 @@ export namespace entity {
             cVec2F our_velocity = transform()->velocity;
             cVec2F other_velocity = other.owner->transform()->velocity;
 
+            if (other.owner->parent() && other_type == entity::Type::brick) {
+                return;
+            }
+
+            if (m_parent) {
+                //collide_x(our, other);
+                return;
+            }            
+
             if (other_type == entity::Type::brick) {
                 transform()->position.y -= overlap_y;                
                 if (std::abs(transform()->velocity.y - other.owner->transform()->velocity.y) >= 1.5F &&
                     (m_state == entity::State::tossed || other.owner->state() == entity::State::tossed)) {
                     transform()->velocity.y *= -0.9F;
                     hurt(other.owner);
+                    other.owner->hurt(this);
                     return;
                 }
-                transform()->velocity.y = 0.0F;
-                transform()->moved_velocity = other_velocity;
+                if (our_rect.y < other_rect.y) {
+                    m_is_on_ground = true;
+                    transform()->velocity.y = 0.0F;
+                    transform()->moved_velocity = other_velocity;
+                }
             }
             else if (other_type == entity::Type::clip       ||
                      other_type == entity::Type::clip_duck  ||
@@ -222,7 +245,7 @@ export namespace entity {
                 transform()->velocity.y = 0.0F;
                 if (other_rect.h < our_rect.h) {
                     //transform()->velocity.y *= -1.0F;
-                } else {                    
+                } else {
                     transform()->moved_velocity = other_velocity;
                     m_is_on_ground = true;
                 }
@@ -239,15 +262,17 @@ export namespace entity {
                 m_is_on_ground = true;
                 m_is_on_slope = other_type == entity::Type::slope_U;
             } else if (other_type == entity::Type::frog) {
+                if (m_state == entity::State::tossed && std::abs(transform()->velocity.y) >= 1.5F) {
+                    transform()->velocity.y *= -0.9F;
+                    hurt(other.owner);
+                    other.owner->hurt(this);
+                    return;
+                }
                 if (our_rect.h < other_rect.y + 4.0F) {
-                    transform()->position.y -= overlap_y;
-
-                    if (m_state == entity::State::tossed && std::abs(transform()->velocity.y) >= 1.5F) {
-                        transform()->velocity.y *= -0.9F;
-                        hurt(other.owner);
-                        return;
-                    }
+                    transform()->position.y -= overlap_y;                    
                     transform()->velocity.y = 0.0F;
+                    transform()->moved_velocity = other_velocity;
+                    m_is_on_ground = true;
                 }
             } else if (other_type == entity::Type::player) {
                 if (our_rect.h < other_rect.y + 4.0F) {
@@ -363,10 +388,10 @@ export namespace entity {
                 m_is_first_update = false;
             }
             if (m_parent) {                
-                Console::log("entity::Brick::update is near wall: ", m_is_near_wall_L, " ", m_is_near_wall_R, "\n");
+                //Console::log("entity::Brick::update is near wall: ", m_is_near_wall_L, " ", m_is_near_wall_R, "\n");
 
-                m_is_near_wall_L = false;
-                m_is_near_wall_R = false;
+                //m_is_near_wall_L = false;
+                //m_is_near_wall_R = false;
 
                 m_is_on_ground = false;
 
@@ -482,6 +507,7 @@ export namespace entity {
                     }
                     spawn(particle::Type::hit, transform()->position, {});
 
+                    Console::log("transform()->velocity.x ", transform()->velocity.x, "\n");
                     spawn_fan(0.0F, 360.0F, 8, particle::Type::brick, transform()->position - Vec2F{ 0.0F, 8.0F }, transform()->velocity, 2.0F);
 
                     transform()->velocity = {};
@@ -497,7 +523,7 @@ export namespace entity {
                 m_parent = nullptr;
             }
             if (m_is_on_ground) {
-                transform()->deceleration = { 0.1F, 0.0F };
+                transform()->deceleration = { 0.2F, 0.0F };
             }
         }
         void update_tossed() {

@@ -31,7 +31,9 @@ void entity::Frog::collide_x(aabb::cInfo our, aabb::cInfo other) {
     cVec2F our_velocity = transform()->velocity;
     cVec2F other_velocity = other.owner->transform()->velocity;
 
-    if (other_type == entity::Type::bug) {
+    if (other_type == entity::Type::brick) {
+        Console::log("entity::Frog::collide_x brick\n");
+    } else if (other_type == entity::Type::bug) {
         transform()->position.x -= overlap_x;        
         if (other.owner->state() == entity::State::tossed) {
             return;
@@ -183,8 +185,10 @@ void entity::Frog::collide_y(aabb::cInfo our, aabb::cInfo other) {
             }
         }
     }
-
-    if (other_type == entity::Type::bug) {
+    if (other_type == entity::Type::brick) {
+        Console::log("entity::Frog::collide_y brick\n");
+    }
+    else if (other_type == entity::Type::bug) {
         Console::log("entity::Frog::collide_y bug\n");
         if (other.owner->state() == entity::State::tossed) {
             return;

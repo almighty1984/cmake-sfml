@@ -126,6 +126,10 @@ void player::Object::collide_x(aabb::cInfo our, aabb::cInfo other) {
             transform()->velocity.x = 0.0F;
             return;
         }
+        if (m_is_carrying) {
+            transform()->velocity.x = 0.0F;
+            return;
+        }
 
         if ((/*other_rect.h < our_rect.y &&*/ m_is_on_ground) || m_is_climbing_ledge) {
             m_time_left_rising = m_time_to_rise;

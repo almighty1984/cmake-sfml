@@ -353,9 +353,10 @@ export namespace entity {
 
                 if (!m_sensed_objects.empty() && m_time_left_to_react == 0) {
                     for (auto& i : m_sensed_objects) {
-                        if (m_is_on_ground && (i->type() == entity::Type::brick ||
+                        if (m_is_on_ground && (i->type() == entity::Type::brick          ||
                                                i->type() == entity::Type::particle_brick ||
                                                i->type() == entity::Type::particle_melee ||
+                                               i->type() == entity::Type::player         ||
                                                i->type() == entity::Type::bug)
                             ) {
                             m_time_left_to_react = 10;
