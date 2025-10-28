@@ -38,7 +38,7 @@ export namespace state {
         virtual ~Object() {
             m_visible_layers.clear();
         }
-        virtual void update(cU64 dt) {}
+        virtual void update(cF32 ts) {}
         virtual void update_unlocked() {}
 
         input::Object* input() { return input::Manager::get(m_input_id); }

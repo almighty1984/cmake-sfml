@@ -12,7 +12,7 @@ import transform;
 import types;
 
 namespace state {
-    void Edit::update(cU64 dt) {
+    void Edit::update(cF32 ts) {
         if (!is_all_valid()) {
             //Console::log("not all valid\n");
             return;

@@ -92,6 +92,7 @@ export namespace particle {
                 Vec2F velocity = particle.velocity;
 
                 if (particle.type == Type::bubble) {
+                    Console::log("spawn bubble\n");
                     s_entity_objects.emplace_back(new entity::ParticleBubble);
                     s_entity_objects.back()->load_config("res/entity/particle/bubble.cfg");
                     //m_particle_entity_objects.back()->sprite()->is_leftward = random::Generator::number(0,1);

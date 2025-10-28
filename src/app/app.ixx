@@ -165,10 +165,7 @@ public:
 
             if (frames >= frames_until_update) {
                 frames = 0;
-                cU64 dt = std::chrono::duration_cast<std::chrono::nanoseconds>(delta_time).count();
-
-                //F32 dt_f = std::chrono::duration_cast<std::chrono::microseconds>(delta_time).count() / 1000000.0F;
-                //Console::log("dt_f: ", dt_f, "\n");
+                cF32 time_step = std::chrono::duration_cast<std::chrono::nanoseconds>(delta_time).count() / 1000000000.0F;
 
                 input::Manager::handle_events(m_window);
                 
@@ -178,7 +175,7 @@ public:
                     if (!state) continue;
 
                     threads.emplace_back(std::thread([&]() {
-                        state->update(dt);
+                        state->update(time_step);
                         
                         //std::unique_lock<std::mutex> transition_lock(transition_mutex);
                         if (state->is_to_transition) {
@@ -243,11 +240,12 @@ public:
             }
             m_window->display();
 
+
             auto current_time = std::chrono::steady_clock::now();
             delta_time = current_time - last_time;
-            last_time = current_time;
 
             frames += std::chrono::duration_cast<std::chrono::nanoseconds>(delta_time).count();
+            last_time = current_time;
         }
     }
 };

@@ -8,7 +8,7 @@ import sound;
 import particle;
 
 void entity::Bug::collide_x(aabb::cInfo our, aabb::cInfo other) {
-    if (m_parent || is_dead()) return;
+    if (is_dead()) return;
     if (!sprite() || !our.owner || !other.owner || !other.owner->transform() || !aabb::Manager::get(other.id) || other.owner->is_dead()) return;
     if (aabb::Manager::get(our.id)->points().size() < 4 || aabb::Manager::get(other.id)->points().size() < 4) return;
 
@@ -20,6 +20,20 @@ void entity::Bug::collide_x(aabb::cInfo our, aabb::cInfo other) {
                         aabb::Manager::get(our.id)->points().at(3).x, aabb::Manager::get(our.id)->points().at(3).y };
     cRectF other_rect = { aabb::Manager::get(other.id)->points().at(0).x, aabb::Manager::get(other.id)->points().at(0).y,
                         aabb::Manager::get(other.id)->points().at(3).x, aabb::Manager::get(other.id)->points().at(3).y };
+
+    if (m_parent) {
+        if (entity::is_clip(other_type) ||
+            other_type == entity::Type::brick) {
+            //Console::log(entity::to_string(other_type), " has parent\n");
+            if (our_rect.w > other_rect.w) {
+                m_is_near_wall_L = true;
+            }
+            if (our_rect.x < other_rect.x) {
+                m_is_near_wall_R = true;
+            }
+        }
+        return;
+    }
 
     cVec2F other_velocity = other.owner->transform()->velocity;
 
@@ -55,12 +69,17 @@ void entity::Bug::collide_x(aabb::cInfo our, aabb::cInfo other) {
         transform()->moved_velocity.x = 0.0F;
         sprite()->is_leftward = !sprite()->is_leftward;
     } else if (other_type == entity::Type::clip || other_type == entity::Type::clip_duck || other_type == entity::Type::clip_ledge) {
-        transform()->position.x -= overlap_x;
+        //if ((transform()->velocity.x < 0.0F && !m_is_near_wall_L) ||
+        //    (transform()->velocity.x > 0.0F && !m_is_near_wall_R)) {
+            transform()->position.x -= overlap_x;
+        //}
+
         transform()->moved_velocity.x = 0.0F;
         //if (m_time_left_turning > 0 || !m_is_on_ground) return;
 
-        if (m_state == entity::State::tossed ||
-            m_state == entity::State::upended && (transform()->velocity.x < -1.0F || transform()->velocity.x > 1.0F)) {
+        if ((m_state == entity::State::tossed ||
+            m_state == entity::State::upended && (transform()->velocity.x <= -1.5F || transform()->velocity.x >= 1.5F))
+            && !m_is_on_ground) {
             transform()->velocity.x *= -0.9F;
             cVec2F hit_pos = { (our_rect.x < other_rect.x ? other_rect.x : other_rect.w) - 8.0F,
                                (our_rect.y < other_rect.y ? other_rect.y : other_rect.h) - 8.0F };
@@ -74,17 +93,32 @@ void entity::Bug::collide_x(aabb::cInfo our, aabb::cInfo other) {
             }
             return;
         }
-        
-        if (transform()->velocity.x > 0.0F && our_rect.x < other_rect.x) {
-            transform()->velocity.x = -1.0F;
-            transform()->position.x -= 2.0F;
-            m_time_left_turning = 30;            
-        } else if (transform()->velocity.x < 0.0F && our_rect.x > other_rect.x) {
-            transform()->velocity.x = 1.0F;
-            transform()->position.x += 2.0F;
-            m_time_left_turning = 30;
+        if (m_state == entity::State::upended) {
+            Console::log("entity::Bug::collide_x velocity ", transform()->velocity.x, "\n");
+            if (transform()->velocity.x < 0.0F) {
+                m_is_near_wall_L = true;
+            } else if (transform()->velocity.x > 0.0F) {
+                m_is_near_wall_R = true;
+            }
+            transform()->velocity.x = 0.0F;
         }
-        sprite()->is_leftward = transform()->velocity.x < 0.0F;
+        if (m_state == entity::State::walk) {
+            if (transform()->velocity.x < 0.0F) {
+                if (our_rect.x > other_rect.x) {
+                    transform()->velocity.x = 1.0F;
+                    //transform()->position.x += 2.0F;
+                    //m_time_left_turning = 30;
+                }
+            } else if (transform()->velocity.x > 0.0F) {
+                
+                if (our_rect.x < other_rect.x) {
+                    transform()->velocity.x = -1.0F;
+                    //transform()->position.x -= 2.0F;
+                    //m_time_left_turning = 30;
+                }
+            }
+            sprite()->is_leftward = transform()->velocity.x < 0.0F;
+        }
     } else if (other_type == entity::Type::clip_L || other_type == entity::Type::clip_LD) {
         if (transform()->velocity.x + transform()->moved_velocity.x <= 0.0F) return;
         transform()->position.x -= overlap_x;
@@ -158,7 +192,20 @@ void entity::Bug::collide_x(aabb::cInfo our, aabb::cInfo other) {
         if (m_state == entity::State::tossed) return;
         //Console::log("aabb name: ", aabb::to_string(other_aabb_name), "\n");
 
-        transform()->position.x -= overlap_x;
+        if (!m_is_near_wall_L && !m_is_near_wall_R) {
+            transform()->position.x -= overlap_x;
+            transform()->velocity.x = other_velocity.x;
+        } else {
+            if (m_is_near_wall_L) {
+                other.owner->transform()->position.x += 2.0F;
+                other.owner->transform()->velocity.x = 2.0F;
+            } else if (m_is_near_wall_R) {
+                other.owner->transform()->position.x -= 2.0F;
+                other.owner->transform()->velocity.x = -2.0F;
+            }
+        }
+
+
         if (m_state == entity::State::walk) {
             //transform()->velocity.x *= -1.0F;
             //transform()->velocity.x = other.owner->transform()->velocity.x;
@@ -270,7 +317,12 @@ void entity::Bug::collide_y(aabb::cInfo our, aabb::cInfo other) {
     //Console::log("type: ", entity::to_string(other_type), "\n");
 
     if (other_type == entity::Type::clip || other_type == entity::Type::clip_duck || other_type == entity::Type::clip_ledge) {
-        transform()->position.y -= overlap_y;
+        if (our_rect.y < other_rect.h) {
+            if (transform()->velocity.y > 0.0F) {
+                //transform()->position.y -= overlap_y;
+                Console::log("entity::Bug::collide_y hmmmmm\n");
+            }
+        }
         transform()->velocity.y = transform()->moved_velocity.y = 0.0F;
         if (our_rect.y < other_rect.y) {
             m_is_on_ground = true;
@@ -279,8 +331,8 @@ void entity::Bug::collide_y(aabb::cInfo our, aabb::cInfo other) {
 
         //if (!m_is_on_ground) return;
         if (other_type == entity::Type::clip_ledge) {
-            if (m_state == entity::State::tossed ||
-                m_state == entity::State::upended && (transform()->velocity.y < -1.0F || transform()->velocity.y > 1.0F)) {
+            if ((m_state == entity::State::tossed || m_state == entity::State::upended) &&
+                (transform()->velocity.y <= -2.0F || transform()->velocity.y >= 2.0F)) {
                 transform()->velocity.y *= -0.9F;
                 cVec2F hit_pos = { (our_rect.x < other_rect.x ? other_rect.x : other_rect.w) - 8.0F,
                                    (our_rect.y < other_rect.y ? other_rect.y : other_rect.h) - 8.0F };
@@ -294,24 +346,6 @@ void entity::Bug::collide_y(aabb::cInfo our, aabb::cInfo other) {
                 }
                 return;
             }
-            //Console::log("our: ", our_rect.y, " ", our_rect.h, "\n");
-            if (our_rect.h > other_rect.y + transform()->acceleration.y) return;
-
-            if (m_time_left_turning > 0 || m_state == entity::State::upended || !m_is_on_ground) return;
-            if (transform()->velocity.x > 0.0F && our_rect.x > other_rect.x) {
-                if (our_rect.x + our_rect.w > other_rect.x + other_rect.w) {
-                    transform()->velocity.x = -1.0F;
-                    transform()->position.x -= 2.0F;
-                    m_time_left_turning = 30;
-                }
-            } else if (transform()->velocity.x < 0.0F && our_rect.x < other_rect.x) {
-                if (our_rect.x < other_rect.x) {
-                    transform()->velocity.x = 1.0F;
-                    transform()->position.x += 2.0F;
-                    m_time_left_turning = 30;
-                }
-            }
-            sprite()->is_leftward = transform()->velocity.x < 0.0F;
         }
     } else if (other_type == entity::Type::clip_U || other_type == entity::Type::slope_U) {
         if (transform()->velocity.y < 0.0F) return;
@@ -430,20 +464,6 @@ void entity::Bug::collide_y(aabb::cInfo our, aabb::cInfo other) {
             }
         }
         else if (our_rect.h <= other_rect.y + 4.0F) {
-
-            /*Vec2F vel = transform()->velocity + transform()->moved_velocity;
-            transform()->velocity.x = (other.owner->transform()->velocity.x + other.owner->transform()->moved_velocity.x) / 1.0F;
-            transform()->velocity.y = -6.0F;
-
-            cF32 v = other.owner->transform()->velocity.y;
-
-            Console::log("entity::Bug::collide_y vel y: ", v, "\n");*/
-            //transform()->position.y -= 8.0F;
-            //transform()->position.y -= overlap_y;
-            //other.owner->transform()->velocity = vel / 2.0F;
-
-            //other.owner->hurt();
-
             cVec2F our_center = Vec2F{ our_rect.x + (our_rect.w - our_rect.x) / 2.0F,     our_rect.y + (our_rect.h - our_rect.y) / 2.0F };
             cVec2F other_center = Vec2F{ other_rect.x + (other_rect.w - other_rect.x) / 2.0F, other_rect.y + (other_rect.h - other_rect.y) / 2.0F };
             

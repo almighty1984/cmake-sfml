@@ -650,7 +650,7 @@ void player::Object::collide_y(aabb::cInfo our, aabb::cInfo other) {
             transform()->velocity.y *= -0.9F;
         }*/
     }
-    else if (other_type == entity::Type::bug) {        
+    else if (other_type == entity::Type::bug) {
         if (other.owner->parent() == this || other.owner->is_dead() || other.owner->is_interacting()) return;
 
         /*if (our_rect.y > other_rect.h) {
@@ -688,7 +688,7 @@ void player::Object::collide_y(aabb::cInfo our, aabb::cInfo other) {
             return;
         }
 
-        if (other_rect.y > our_rect.h - 2.0F - transform()->velocity.y) {
+        if (other_rect.y > our_rect.h - 2.0F - transform()->velocity.y && !m_is_on_ground) {
             transform()->position.y -= overlap_y;
             if ((other.owner->state() == entity::State::upended || other.owner->state() == entity::State::bounce) &&
                 other.owner->time_left_interacting() == 0) {

@@ -56,7 +56,7 @@ export namespace state {
             //line::Manager::erase(m_line_id);
             m_fps_text.clear_text();
         }
-        virtual void update(cU64 dt) override {
+        virtual void update(cF32 ts) override {
             if (!input() || !transform::Manager::get(m_transform_id) /*|| !transform::Manager::get(m_line_transform_id)*/) return;
 
             /*++m_timer;
@@ -66,12 +66,12 @@ export namespace state {
             m_timer = 0;*/
             //Console::log("overlay update ", m_transform_id, " ", transform::Manager::get(m_transform_id)->velocity.x, " ", transform::Manager::get(m_transform_id)->velocity.y, "\n");
 
-            cI64 current_fps = 1000000000 / dt;
+            cF32 current_fps = 1.0F / ts;
 
             //Console::log("Overlay::update ", current_fps, "\n");
 
             m_fps_text.transform_id = m_transform_id;
-            m_fps_text.set_text(std::to_string(current_fps));
+            m_fps_text.set_text(std::to_string((int)current_fps));
 
             if (input()->is_pressed(input::Key::ctrl)) {
                 if (input()->is_pressed(input::Key::up)) {

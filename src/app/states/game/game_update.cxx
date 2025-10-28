@@ -23,7 +23,7 @@ namespace state {
             if (i) i->update();
         }
     }
-    void Game::update(cU64 dt) {
+    void Game::update(cF32 ts) {
         if (!is_all_valid()) return;
 
         //Console::log("visible layers: ", m_visible_layers.size(), "\n");

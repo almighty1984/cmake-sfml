@@ -26,6 +26,8 @@ export namespace entity {
                 return;
             }*/
 
+            
+
             if (m_time_left_hurt > 0) {
                 --m_time_left_hurt;
             }
@@ -37,9 +39,15 @@ export namespace entity {
             }
 
             switch (m_state) {
-            case entity::State::idle: update_idle(); break;
-            case entity::State::dead: update_dead(); break;
-            default:                                 break; }
+                case entity::State::idle:
+                    update_idle();
+                    /*if (m_type == entity::Type::particle_bubble) {
+                        Console::log("yo\n");
+                    }*/
+                    break;
+                case entity::State::dead: update_dead(); break;
+                default:                                 break;
+            }
 
             if (m_time_left_alive > 0) {
                 --m_time_left_alive;

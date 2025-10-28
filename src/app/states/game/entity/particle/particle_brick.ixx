@@ -293,9 +293,9 @@ export namespace entity {
                 //sprite()->set_rotation(90.0f);
 
                 //transform()->velocity.x *= -0.9F;
-            } else if (entity::is_water_line(other_type)) {
+            } else if (entity::is_water_line(other_type)) {                
                 transform()->acceleration = { 0.05F, 0.05F };
-                transform()->max_velocity = { 1.0F, 1.0F };
+                transform()->max_velocity = { 0.4F, 0.7F };
 
                 if (transform()->velocity.y > 0.0F) {
                     if (m_water_enter_sound_id != -1 && !sound::Manager::get(m_water_enter_sound_id)->is_playing()) {                        

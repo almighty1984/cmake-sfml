@@ -264,7 +264,7 @@ export namespace state {
         void clear_level_sprites();
         void load_level_sprites(const std::filesystem::path& path);
 
-        void update(cU64 dt) override;
+        void update(cF32 ts) override;
 
         void draw(std::unique_ptr<Window>& window, cU8 layer) override {
             if (!is_all_valid()) return;

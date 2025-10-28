@@ -63,8 +63,6 @@ export namespace entity {
                 }
                 return;
             }
-            m_is_near_wall_L = false;
-            m_is_near_wall_R = false;
 
             if (other_type == entity::Type::brick) {
                 transform()->position.x -= overlap_x;
@@ -197,7 +195,7 @@ export namespace entity {
             if (m_parent) {
                 //collide_x(our, other);
                 return;
-            }            
+            }
 
             if (other_type == entity::Type::brick) {
                 transform()->position.y -= overlap_y;                
@@ -436,6 +434,11 @@ export namespace entity {
             sprite()->source_rect.y = anim::Manager::get(m_current_anim_id)->source.y;
 
             if (m_parent) {
+                Console::log("entity::Brick::update is_near_wall: ", m_is_near_wall_L, " ", m_is_near_wall_R, "\n");
+
+                m_is_near_wall_L = false;
+                m_is_near_wall_R = false;
+
                 transform()->velocity = m_parent->transform()->velocity;
                 if (m_parent->sprite()->is_leftward) {
                     if (transform()->position.x < m_parent->transform()->position.x - 12.0F) {
@@ -473,6 +476,7 @@ export namespace entity {
             if (!is_dead()) {
                 transform()->velocity.y += transform()->acceleration.y;
             }
+
         }
 
         void update_dead() {

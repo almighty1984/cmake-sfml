@@ -101,7 +101,7 @@ export namespace state {
         }
         void check_entities_to_add_input_from(entity::Object* trigger_entity);
 
-        virtual void update(cU64 dt) override;
+        virtual void update(cF32 ts) override;
         virtual void update_unlocked() override;
 
         void draw(std::unique_ptr<Window>& window, cU8 layer) override;

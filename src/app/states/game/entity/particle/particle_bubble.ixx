@@ -11,9 +11,11 @@ export namespace entity {
     public:
         ParticleBubble() {
             m_type = Type::particle_bubble;
-            m_state = entity::State::idle;
+            m_next_state = entity::State::idle;
         }
-        void update_idle() override {            
+        void update_idle() override {
+            //Console::log("entity::ParticleBubble::update_idle direction: ", m_direction.x, "\n");
+            ++m_time_in_state;
             if (m_time_in_state < 10) return;
 
             if (m_direction.x == 0.0F) {
@@ -21,10 +23,10 @@ export namespace entity {
             } else {
                 transform()->velocity.x += transform()->acceleration.x;
             }
-            if (transform()->velocity.x < -0.1F) {
+            if (transform()->velocity.x < -0.2F) {
                 m_direction.x = 1.0F;
             }
-            else if (transform()->velocity.x > 0.1F) {
+            else if (transform()->velocity.x > 0.2F) {
                 m_direction.x = 0.0F;
             }
         }

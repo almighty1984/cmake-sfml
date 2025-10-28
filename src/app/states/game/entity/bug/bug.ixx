@@ -12,7 +12,7 @@ import transform;
 
 export namespace entity {
     class Bug : public Object {
-        U8 m_time_left_turning = 0;
+        //U8 m_time_left_turning = 0;
     public:
         Bug() {
             m_state = m_next_state = entity::State::walk;
@@ -73,10 +73,20 @@ export namespace entity {
             if (!m_is_on_slope && (transform()->velocity.y < 0.0F || transform()->velocity.y > transform()->acceleration.y)) {
                 m_is_on_ground = false;
             }
+
+            if (m_state == entity::State::upended) {
+                //Console::log("entity::Bug::update is_near_wall: ", m_is_near_wall_L, " ", m_is_near_wall_R, "\n");
+            }
+            if (transform()->velocity.x < 0.0F) {
+                m_is_near_wall_R = false;
+            }
+            if (transform()->velocity.x > 0.0F) {
+                m_is_near_wall_L = false;
+            }
             //Console::log("state: ", entity::to_string(m_state), " ", m_is_on_ground, "\n");
 
             if (m_time_left_hurt        > 0) --m_time_left_hurt;
-            if (m_time_left_turning     > 0) --m_time_left_turning;
+            //if (m_time_left_turning     > 0) --m_time_left_turning;
             if (m_time_left_interacting > 0) --m_time_left_interacting;
 
             if (health()->amount <= 0.0f) {
